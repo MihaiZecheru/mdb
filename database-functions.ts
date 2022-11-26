@@ -22,6 +22,9 @@ export class DatabaseUsers {
 
       // add the user to the user_tables table (count and tables automatically take care of themselves)
       await db.query('INSERT INTO user_tables (user_id) VALUES ($1)', [user_id]);
+
+      // add the user to the user_environments table (count and environments automatically take care of themselves)
+      await db.query('INSERT INTO user_environments (user_id) VALUES ($1)', [user_id]);
       
       return new User({ id: user_id, username, password, email });
     } catch (err) {
@@ -65,6 +68,7 @@ export class DatabaseUsers {
     try {
       await db.query('DELETE FROM users WHERE id = $1', [id]);
       await db.query('DELETE FROM user_tables WHERE user_id = $1', [id]);
+      await db.query('DELETE FROM user_environments WHERE user_id = $1', [id]);
       return true;
     } catch (err) {
       return false;
