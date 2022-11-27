@@ -7,7 +7,6 @@ type fieldname = string;
 type fieldtype = "string" | "integer" | "float" | "boolean" | "date" | "url" | "array" | "json";
 export type field = { name: fieldname; type: fieldtype };
 
-export type TmissingFieldsError = { "error": string };
 export type errorMessage = string;
 
 /**
