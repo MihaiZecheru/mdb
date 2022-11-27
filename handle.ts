@@ -21,6 +21,7 @@ export class Handle {
 
   /**
    * Handle an invalid user, essentially, handle the result of a call to DatabaseUsers.userExists
+   * If the user exists, it will be returned, otherwise an error message will be sent via the 'res' object
    * 
    * @param userExists The result from the call to the 'DatabaseUsers.userExists' (or similar) function
    * @param res The express.js 'response' object
@@ -38,6 +39,8 @@ export class Handle {
   }
 
   /**
+   * Handle an invalid enivoronment, essentially, handle the result of a call to DatabaseUserEnvironments.getEnvironmentByName
+   * If the environment exists, it will be returned, otherwise an error message will be sent via the 'res' object
    * 
    * @param envExists The result from the call to the 'DatabaseUsers.environmentExists' (or similar) function
    * @param res The express.js 'response' object
@@ -92,12 +95,13 @@ export class Handle {
   }
 
   /**
+   * Handle an API call to /:env_name/<property_name>
    * 
    * @param req The express.js 'request' object
    * @param res The express.js 'response' object
-   * @returns The environment object that was requested, or 'void'. If 'void' is returned, the API call has been resolved and should be terminated
+   * @returns The environment object that was requested, otherwise 'void'. If 'void' is returned, the API call has been resolved and should be terminated
    */
-  static async APIcall_EnvironmentEnvName(req: any, res: any): Promise<Environment | void> {
+  static async APIcall_GetEnvironmentProperty(req: any, res: any): Promise<Environment | void> {
     const env_name = req.params.env_name;
     const user_id = req.query.user_id;
 
@@ -118,5 +122,22 @@ export class Handle {
     if (Handle.envExists(environment, res, env_name)) return;
 
     return <Environment>environment;
+  }
+
+  /**
+   * Handle an API call to /:user_id/<property_name>
+   * 
+   * @param req The express.js 'request' object
+   * @param res The express.js 'response' object
+   * @returns The user object that was requested, otherwise 'void'. If 'void' is returned, the API call has been resolved and should be terminated
+   */
+  static async APIcall_GetUsersProperty(req: any, res: any): Promise<User | void> {
+    const user_id = req.params.user_id;
+    if (Handle.invalidUserId(user_id, res)) return;
+
+    const user = await DatabaseUsers.getUser(user_id);
+    if (await Handle.userExists(user, res, user_id)) return;
+
+    return <User>user;
   }
 }

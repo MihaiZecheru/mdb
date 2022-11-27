@@ -32,8 +32,7 @@ app.post('/users/', async (req: any, res: any) => {
   const email = req.body?.email;
   
   if (!username || !password || !email) {
-    Handle.missingFieldsError({ username, password, email }, "body", res);
-    return;
+    return Handle.missingFieldsError({ username, password, email }, "body", res);
   }
 
   const user = await DatabaseUsers.createUser(username, password, email);
@@ -58,6 +57,27 @@ app.get('/users/:user_id', async (req: any, res: any) => {
   }
 
   Handle.functionResult(res, <User | errorMessage>user);
+});
+
+app.get('/users/:user_id/username', async (req: any, res: any) => {
+  const user = await Handle.APIcall_GetUsersProperty(req, res);
+  if (!user) return;
+
+  res.status(200).json({ username: (<User>user).username });
+});
+
+app.get('/users/:user_id/password', async (req: any, res: any) => {
+  const user = await Handle.APIcall_GetUsersProperty(req, res);
+  if (!user) return;
+
+  res.status(200).json({ password: (<User>user).password });
+});
+
+app.get('/users/:user_id/email', async (req: any, res: any) => {
+  const user = await Handle.APIcall_GetUsersProperty(req, res);
+  if (!user) return;
+
+  res.status(200).json({ email: (<User>user).email });
 });
 
 /**
@@ -240,21 +260,21 @@ app.get('/environments/:user_id/count', async (req: any, res: any) => {
 });
 
 app.get('/environments/:env_name/owner_id', async (req: any, res: any) => {
-  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
   
   return res.status(200).json({ owner_id: (<Environment>result).owner_id });
 });
 
 app.get('/environments/:env_name/description', async (req: any, res: any) => {
-  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
 
   return res.status(200).json({ description: (<Environment>result).description });
 });
 
 app.get('/environments/:env_name/tables', async (req: any, res: any) => {
-  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
 
   return res.status(200).json({ tables: (<Environment>result).tables });
