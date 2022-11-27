@@ -9,7 +9,12 @@ export type field = { name: fieldname; type: fieldtype };
 
 export type TmissingFieldsError = { "error": string };
 export type errorMessage = string;
-// function for checking if a string is an errorMessage
+
+/**
+ * Confirm whether or not the given 'value' is of the 'errorMessage' type
+ * @param value The value to validate
+ * @returns A boolean value which indicates whether the given 'value' is of the 'errorMessage' type
+ */
 export function isErrorMessage(value: any): boolean {
   return typeof value === "string" && value.startsWith("ERROR: ");
 }
