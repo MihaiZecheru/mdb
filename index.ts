@@ -21,7 +21,7 @@ app.get('/', (req: any, res: any) => {
 });
 
 /**
- * Add a new user to the `users` table
+ * Creates a new user
  * 
  * Sends: the new user as a JSON object if successful, 
  *        otherwise sends the db error message
@@ -80,8 +80,8 @@ app.get('/users/:user_id/email', async (req: any, res: any) => {
 });
 
 /**
- * Update the user with the given `user_id`s information
- * (username, password, email)
+ * Update the user with the given `user_id`
+ * Fields to update: (username, password, email)
  * 
  * Sends: the updated user if successful
  *        otherwise sends an error message
@@ -106,7 +106,7 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
 });
 
 /**
- * Delete a user by `user_id`
+ * Delete the user with the given `user_id`
  * 
  * Sends: a confirmation message if successful, 
  *        otherwise sends an error message
@@ -127,6 +127,12 @@ app.delete('/users/:user_id', async (req: any, res: any) => {
   }
 });
 
+/**
+ * Create a new environment for a user with the given `user_id`
+ * 
+ * Sends: the new environment if successful,
+ *        otherwise sends an error message
+ */
 app.post('/environments/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   const environment_name = req.body.name;
@@ -148,6 +154,12 @@ app.post('/environments/:user_id', async (req: any, res: any) => {
   Handle.functionResult(res, environment);
 });
 
+/**
+ * Deletes an environment with the given `name` in the body from the user with the given `user_id`
+ * 
+ * Sends: a confirmation message if successful,
+ *       otherwise sends an error message
+ */
 app.delete('/environments/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   const environment_name = req.body.name;
@@ -176,6 +188,13 @@ app.delete('/environments/:user_id', async (req: any, res: any) => {
   }
 });
 
+/**
+ * Updates the environment with the given `name` in the body from the user with the given `user_id`
+ * Fields to update: (name, description)
+ * 
+ * Sends: the updated environment if successful,
+ *       otherwise sends an error message
+ */
 app.patch('/environments/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   const old_environment_name = req.body.old_name;
@@ -209,6 +228,12 @@ app.patch('/environments/:user_id', async (req: any, res: any) => {
   Handle.functionResult(res, new_env);
 });
 
+/**
+ * Get the environment with the given `name` from the user with the given `user_id` (passed as a query param)
+ * 
+ * Sends: the environment if successful,
+ *      otherwise sends an error message
+ */
 app.get('/environments/:env_name', async (req: any, res: any) => {
   const environment_name = req.params.env_name;
   const user_id = req.query.user_id;
@@ -235,6 +260,12 @@ app.get('/environments/:env_name', async (req: any, res: any) => {
   Handle.functionResult(res, environment);
 });
 
+/**
+ * Get the amount of environments the user with the given `user_id` has
+ * 
+ * Sends: the amount of environments if successful,
+ *     otherwise sends an error message
+ */
 app.get('/environments/:user_id/count', async (req: any, res: any) => {
   const user_id = req.params.user_id;
 
@@ -252,6 +283,12 @@ app.get('/environments/:user_id/count', async (req: any, res: any) => {
   }
 });
 
+/**
+ * Get the `owner_id` of the environment with the given `name` from the user with the given `user_id`
+ * 
+ * Sends: the `owner_id` if successful,
+ *    otherwise sends an error message
+ */
 app.get('/environments/:env_name/owner_id', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
@@ -259,6 +296,12 @@ app.get('/environments/:env_name/owner_id', async (req: any, res: any) => {
   return res.status(200).json({ owner_id: (<Environment>result).owner_id });
 });
 
+/**
+ * Get the `description` of the environment with the given `name` from the user with the given `user_id`
+ * 
+ * Sends: the `description` if successful,
+ *    otherwise sends an error message
+ */
 app.get('/environments/:env_name/description', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
@@ -266,6 +309,12 @@ app.get('/environments/:env_name/description', async (req: any, res: any) => {
   return res.status(200).json({ description: (<Environment>result).description });
 });
 
+/**
+ * Get the `tables` of the environment with the given `name` from the user with the given `user_id`
+ * 
+ * Sends: the `tables` if successful,
+ *    otherwise sends an error message
+ */
 app.get('/environments/:env_name/tables', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
@@ -277,7 +326,8 @@ app.get('/environments/:env_name/tables', async (req: any, res: any) => {
  * Create a table and then link it to the user with the given `user_id`
  * The table fields are specified in the request body
  * 
- * 
+ * Sends: the created table schema if successful,
+ *    otherwise sends an error message
  */
 app.post('/tables/:user_id', (req: any, res: any) => {
   const user_id = req.params.user_id;
