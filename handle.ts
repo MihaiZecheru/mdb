@@ -50,4 +50,25 @@ export class Handle {
       expressResponseObj.status(200).json((<User | Environment>funcResult).toJSON());
     }
   }
+
+  /**
+   * Takes in a series of key-value pairs (fields) and resolves the API call with an error message if any of the fields are missing
+   * The error message is formatted, specifying exactly which fields are missing
+   * 
+   * @param fields The fields to check
+   * @param from Where are the fields missing from?
+   * @param res The express.js 'response' object
+   */
+  static missingFieldsError(fields: { [key: string]: any }, from: "body" | "query" | "params", res): void{
+    const missingFields = Object.keys(fields).filter(key => fields[key] === undefined);
+    
+    if (missingFields.length > 2) {
+      const lastMissingField = missingFields.pop();
+      res.status(400).json({ error: `Missing fields "${missingFields.join('", "')}", and "${lastMissingField}" from ${from}` });
+    } else if (missingFields.length === 2) {
+      res.status(400).json({ error: `Missing fields "${missingFields[0]}" and "${missingFields[1]}" from ${from}` });
+    } else if (missingFields.length === 1) {
+      res.status(400).json({ error: `Missing field "${missingFields[0]}" from ${from}` });
+    }
+  }
 }
