@@ -1,3 +1,4 @@
+import { DatabaseUsers } from '../database-functions';
 import { user_id } from './basic';
 
 export interface IUser {
@@ -8,12 +9,12 @@ export interface IUser {
 }
 
 export class User implements IUser {
-  readonly id: user_id;
-  username: string;
-  password: string;
-  email: string;
+  public readonly id: user_id;
+  public username: string;
+  public password: string;
+  public email: string;
 
-  constructor(user: IUser) {
+  public constructor(user: IUser) {
     this.id = user.id;
     this.username = user.username;
     this.password = user.password;
@@ -24,32 +25,35 @@ export class User implements IUser {
    * Updates the user's username in the database
    * @param username The user's new username
    */
-  updateUsername(username: string): void {
+   public updateUsername(username: string): void {
     this.username = username;
+    DatabaseUsers.updateUser(this);
   }
   
   /**
    * Updates the user's password in the database
    * @param password The user's new password
    */
-  updatePassword(password: string): void {
+   public updatePassword(password: string): void {
     this.password = password;
+    DatabaseUsers.updateUser(this);
   }
 
   /**
    * Updates the user's email in the database
    * @param email The user's new email
    */
-  updateEmail(email: string): void {
+   public updateEmail(email: string): void {
     this.email = email;
+    DatabaseUsers.updateUser(this);
   }
 
   /**
    * Parses a stringified user into a User object
    * @param json The stringified JSON object
-   * @returns 
+   * @returns The User object
    */
-  static parseUser(json: string): User {
+   public static parseUser(json: string): User {
     return new User(JSON.parse(json));
   }
   
@@ -57,7 +61,7 @@ export class User implements IUser {
    * Returns the user as a JSON object, synonymous with toInterface()
    * @returns The user as a JSON object
    */
-  toJSON(): IUser {
+   public toJSON(): IUser {
     return {
       id: this.id,
       username: this.username,
@@ -70,7 +74,7 @@ export class User implements IUser {
    * Returns the user as an interface, synonymous with toJSON()
    * @returns The interface version of the user
    */
-  toInterface(): IUser {
+   public toInterface(): IUser {
     return this.toJSON();
   }
 
@@ -78,19 +82,19 @@ export class User implements IUser {
    * Opposite of toJSON(); stringifies the user
    * @returns The user as a stringified JSON object
    */
-  stringify(): string {
+   public stringify(): string {
     return JSON.stringify(this.toJSON());
   }
 
   /**
-   * Creates an instance of the User class by accepting the user's username, password, and email, 
-   * then generating a unique id and assigning it to the user
+   * Creates an instance of the User class by accepting the user's id, username, password, and email
+   * @param id The user's id
    * @param username The user's username
    * @param password The user's password
    * @param email The user's email
    * @returns An instance of the User class
    */
-  static newUser(id: user_id, username: string, password: string, email: string): User {
+   public static newUser(id: user_id, username: string, password: string, email: string): User {
     return new User({ id, username, password, email });
   }
 }
