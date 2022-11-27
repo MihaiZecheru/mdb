@@ -1,8 +1,8 @@
 import { DatabaseUsers, DatabaseUserEnvironments, DatabaseUserTables } from './database-functions';
-import { User, IUser } from './types/user';
 import { errorMessage, isErrorMessage } from './types/basic';
 import { Environment } from './types/environment';
-import { Handle } from './handle';
+import { User } from './types/user';
+import Handle from './handle';
 
 require('dotenv').config();
 const port = process.env['PORT'];
@@ -52,8 +52,7 @@ app.get('/users/:user_id', async (req: any, res: any) => {
   const user = await DatabaseUsers.getUser(user_id);
 
   if (!user) {
-    res.status(400).json({ error: `User with id '${user_id}' does not exist` });
-    return;
+    return res.status(400).json({ error: `User with id '${user_id}' does not exist` });
   }
 
   Handle.functionResult(res, <User | errorMessage>user);
@@ -96,8 +95,7 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
   if (Handle.invalidUserId(user_id, res)) return;
 
   if (!username && !password && !email) {
-    res.status(400).json({ error: `No fields were given to update` });
-    return;
+    return res.status(400).json({ error: `No fields were given to update` });
   }
 
   const userExists = await DatabaseUsers.getUser(user_id);
@@ -137,15 +135,13 @@ app.post('/environments/:user_id', async (req: any, res: any) => {
   if (Handle.invalidUserId(user_id, res)) return;
 
   if (!environment_name || !environment_description) {
-    Handle.missingFieldsError({ name: environment_name, description: environment_description }, "body", res);
-    return;
+    return Handle.missingFieldsError({ name: environment_name, description: environment_description }, "body", res);
   }
 
   const user = await DatabaseUsers.getUser(user_id);
 
   if (!user) {
-    res.status(400).json({ error: `User with id '${user_id}' does not exist` });
-    return;
+    return res.status(400).json({ error: `User with id '${user_id}' does not exist` });
   }
 
   const environment = await DatabaseUserEnvironments.createEnvironment(<User>user, environment_name, environment_description);
@@ -168,8 +164,7 @@ app.delete('/environments/:user_id', async (req: any, res: any) => {
   const user = await DatabaseUsers.getUser(user_id);
 
   if (!user) {
-    res.status(400).json({ error: `User with id '${user_id}' does not exist` });
-    return;
+    return res.status(400).json({ error: `User with id '${user_id}' does not exist` });
   }
 
   const success = await DatabaseUserEnvironments.deleteEnvironment(<User>user, environment_name);
@@ -190,8 +185,7 @@ app.patch('/environments/:user_id', async (req: any, res: any) => {
   if (Handle.invalidUserId(user_id, res)) return;
 
   if (!new_environment_name && !environment_description) {
-    res.status(400).json({ error: `No fields were given to update (note: the new name must be passed in as 'new_name', not 'name')` });
-    return;
+    return res.status(400).json({ error: `No fields were given to update (note: the new name must be passed in as 'new_name', not 'name')` });
   } else if (!old_environment_name) {
     return Handle.missingFieldsError({ old_name: old_environment_name }, "body", res);
   }
@@ -220,8 +214,7 @@ app.get('/environments/:env_name', async (req: any, res: any) => {
   const user_id = req.query.user_id;
 
   if (!isNaN(environment_name)) {
-    res.status(400).json({ error: `Environment name '${environment_name}' is invalid (note: this endpoint takes the user_id as a query param, not as a part of the path)` });
-    return;
+    return res.status(400).json({ error: `Environment name '${environment_name}' is invalid (note: this endpoint takes the user_id as a query param, not as a part of the path)` });
   }
 
   if (!user_id) {
