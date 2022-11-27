@@ -240,27 +240,24 @@ app.get('/environments/:user_id/count', async (req: any, res: any) => {
 });
 
 app.get('/environments/:env_name/owner_id', async (req: any, res: any) => {
-  const env_name = req.params.env_name;
-  const user_id = req.query.user_id;
-
-  if (!isNaN(env_name)) {
-    res.status(400).json({ error: `Environment name '${env_name}' is invalid (note: this endpoint takes the user_id as a query param, not as a part of the path)` });
-    return;
-  }
-
-  if (!user_id) {
-    return Handle.missingFieldsError({ user_id }, "query", res);
-  }
-
-  if (Handle.invalidUserId(user_id, res)) return;
-
-  const userExists = await DatabaseUsers.userExists(user_id);
-  if (Handle.userExists(userExists, res, user_id)) return;
-
-  const environment = await DatabaseUserEnvironments.getEnvironmentByName(user_id, env_name);
-  if (Handle.envExists(environment, res, env_name)) return;
+  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  if (!result) return; // the func has already sent a response
   
-  return res.status(200).json({ owner_id: (<Environment>environment).owner_id });
+  return res.status(200).json({ owner_id: (<Environment>result).owner_id });
+});
+
+app.get('/environments/:env_name/description', async (req: any, res: any) => {
+  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  if (!result) return; // the func has already sent a response
+
+  return res.status(200).json({ description: (<Environment>result).description });
+});
+
+app.get('/environments/:env_name/tables', async (req: any, res: any) => {
+  const result = await Handle.APIcall_EnvironmentEnvName(req, res);
+  if (!result) return; // the func has already sent a response
+
+  return res.status(200).json({ tables: (<Environment>result).tables });
 });
 
 /**

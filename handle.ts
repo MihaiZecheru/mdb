@@ -1,3 +1,4 @@
+import { DatabaseUserEnvironments, DatabaseUsers } from "./database-functions";
 import { errorMessage, isErrorMessage, user_id } from "./types/basic";
 import { Environment } from "./types/environment";
 import { User } from "./types/user";
@@ -8,7 +9,7 @@ export class Handle {
    * 
    * @param id The given id to validate
    * @param res The express.js 'response' object
-   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */
    static invalidUserId(id: user_id, res: any): boolean {
     if (isNaN(id)) {
@@ -23,7 +24,7 @@ export class Handle {
    * 
    * @param userExists The result from the call to the 'DatabaseUsers.userExists' (or similar) function
    * @param res The express.js 'response' object
-   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */
    static userExists(userExists: any, res: any, user_id: user_id): boolean {
     if (isErrorMessage(userExists)) {
@@ -41,7 +42,7 @@ export class Handle {
    * @param envExists The result from the call to the 'DatabaseUsers.environmentExists' (or similar) function
    * @param res The express.js 'response' object
    * @param env_name The name of the environment that was checked
-   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */
   static envExists(envExists: any, res: any, env_name: string) {
     if (isErrorMessage(envExists)) {
@@ -88,5 +89,34 @@ export class Handle {
     } else if (missingFields.length === 1) {
       res.status(400).json({ error: `Missing field "${missingFields[0]}" from ${from}` });
     }
+  }
+
+  /**
+   * 
+   * @param req The express.js 'request' object
+   * @param res The express.js 'response' object
+   * @returns The environment object that was requested, or 'void'. If 'void' is returned, the API call has been resolved and should be terminated
+   */
+  static async APIcall_EnvironmentEnvName(req: any, res: any): Promise<Environment | void> {
+    const env_name = req.params.env_name;
+    const user_id = req.query.user_id;
+
+    if (!isNaN(env_name)) {
+      return res.status(400).json({ error: `Environment name '${env_name}' is invalid (note: this endpoint takes the user_id as a query param, not as a part of the path)` });
+    }
+
+    if (!user_id) {
+      return Handle.missingFieldsError({ user_id }, "query", res);
+    }
+
+    if (Handle.invalidUserId(user_id, res)) return;
+
+    const userExists = await DatabaseUsers.userExists(user_id);
+    if (Handle.userExists(userExists, res, user_id)) return;
+
+    const environment = await DatabaseUserEnvironments.getEnvironmentByName(user_id, env_name);
+    if (Handle.envExists(environment, res, env_name)) return;
+
+    return <Environment>environment;
   }
 }
