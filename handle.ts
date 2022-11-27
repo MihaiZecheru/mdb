@@ -8,7 +8,7 @@ export class Handle {
    * 
    * @param id The given id to validate
    * @param res The express.js 'response' object
-   * @returns A boolean value which indicates whether an error was sent via the 'res' object (meaning the id was invalid)
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
    */
    static invalidUserId(id: user_id, res: any): boolean {
     if (isNaN(id)) {
@@ -23,7 +23,7 @@ export class Handle {
    * 
    * @param userExists The result from the call to the 'DatabaseUsers.userExists' (or similar) function
    * @param res The express.js 'response' object
-   * @returns A boolean value which indicates whether an error was sent via the 'res' object (meaning the user does not exist)
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
    */
    static userExists(userExists: any, res: any, user_id: user_id): boolean {
     if (isErrorMessage(userExists)) {
@@ -31,6 +31,24 @@ export class Handle {
       return true;
     } else if (!userExists) {
       res.status(400).json({ error: `User with id '${user_id}' does not exist` });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 
+   * @param envExists The result from the call to the 'DatabaseUsers.environmentExists' (or similar) function
+   * @param res The express.js 'response' object
+   * @param env_name The name of the environment that was checked
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API route / call should be terminated as the call has been resolved
+   */
+  static envExists(envExists: any, res: any, env_name: string) {
+    if (isErrorMessage(envExists)) {
+      res.status(400).json({ error: envExists });
+      return true;
+    } else if (!envExists) {
+      res.status(400).json({ error: `Environment '${env_name}' does not exist` });
       return true;
     }
     return false;
@@ -59,7 +77,7 @@ export class Handle {
    * @param from Where are the fields missing from?
    * @param res The express.js 'response' object
    */
-  static missingFieldsError(fields: { [key: string]: any }, from: "body" | "query" | "params", res): void{
+  static missingFieldsError(fields: { [key: string]: any }, from: "body" | "query" | "params", res: any): void{
     const missingFields = Object.keys(fields).filter(key => fields[key] === undefined);
     
     if (missingFields.length > 2) {
