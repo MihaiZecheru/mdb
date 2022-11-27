@@ -3,7 +3,7 @@ import { errorMessage, isErrorMessage, user_id } from "./types/basic";
 import { Environment } from "./types/environment";
 import { User } from "./types/user";
 
-export class Handle {
+export default class Handle {
   /**
    * Handle the result of an invalid user id, which is a value that is not an integer
    * 
