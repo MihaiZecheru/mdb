@@ -81,7 +81,7 @@ export default class Handle {
    * @param from Where are the fields missing from?
    * @param res The express.js 'response' object
    */
-  static missingFieldsError(fields: { [key: string]: any }, from: "body" | "query" | "params" | "field", res: any): void{
+  static missingFieldsError(fields: { [key: string]: any }, from: "body" | "query" | "params" | "table fields", res: any): void{
     const missingFields = Object.keys(fields).filter(key => fields[key] === undefined);
     
     if (missingFields.length > 2) {
