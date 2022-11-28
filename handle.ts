@@ -337,7 +337,7 @@ export default class Handle {
           return l_err(20, t);
         }
 
-        if (!isValidPhone(d)) {
+        if (!isValidPhone(d.toString())) {
           return nv_err(d.toString(), t);
         }
 
@@ -385,5 +385,7 @@ export default class Handle {
 
         break;
     }
+
+    return false;
   }
 }
