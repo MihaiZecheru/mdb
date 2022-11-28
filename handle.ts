@@ -1,7 +1,38 @@
 import { DatabaseUserEnvironments, DatabaseUsers } from "./database-functions";
-import { errorMessage, isErrorMessage, user_id } from "./types/basic";
+import { errorMessage, fieldtype, isErrorMessage, user_id } from "./types/basic";
 import { Environment } from "./types/environment";
+import { Table } from "./types/table";
 import { User } from "./types/user";
+
+export const MAX_VARCHAR: number = 10485760;
+
+export function isValidUrl(str: string) {
+  const pattern = new RegExp(
+    '^([a-zA-Z]+:\\/\\/)?' + // protocol
+      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+      '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IP (v4) address
+      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+      '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+      '(\\#[-a-z\\d_]*)?$', // fragment locator
+    'i'
+  );
+  return pattern.test(str);
+}
+
+export function isValidEmail(str: string) {
+  return new RegExp(/^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/)
+    .test(str);
+}
+
+export function isValidPhone(str: string) {
+  return new RegExp(/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im).test(str);
+}
+
+export function isValidEmoji(str: string) {
+  // U+1F441 U+FE0F U+200D U+1F5E8 U+FE0F
+  str += " ";
+  return (new RegExp(/^(U\+([A-Z0-9]){4,5}\s){1,8}$/g).test(str)) || (new RegExp(/^:\w+:$/g).test(str));
+}
 
 export default class Handle {
   /**
@@ -65,11 +96,11 @@ export default class Handle {
    * @param expressResponseObj The express.js 'response' object
    * @param funcResult The result from the call to the 'DatabaseUsers.updateUser' (or similar) function
    */
-  static functionResult(expressResponseObj: any, funcResult: User | Environment | errorMessage): void {
+  static functionResult(expressResponseObj: any, funcResult: User | Environment | Table | errorMessage): void {
     if (isErrorMessage(funcResult)) {
       expressResponseObj.status(400).json({ error: funcResult });
     } else {
-      expressResponseObj.status(200).json((<User | Environment>funcResult).toJSON());
+      expressResponseObj.status(200).json((<User | Environment | Table>funcResult).toJSON());
     }
   }
 
@@ -139,5 +170,220 @@ export default class Handle {
     if (await Handle.userExists(user, res, user_id)) return;
 
     return <User>user;
+  }
+
+  /**
+   * Checks for an invalid default value based on the given type.
+   * 
+   * Example of invalid default value: 'type' is 'int' but 'd' is 'hello world'
+   * @param d The default value to check
+   * @param t The type to validate the default value with
+   * @param notNull A boolean that indicates whether 'not null' was requested to be set for this field
+   * @param res The express.js 'response' object
+   */
+  static invalidDefaultValue(d: any, t: fieldtype, notNull, res): boolean {
+    function t_err(_t: string): true {
+      res.status(400).json({ error: `Invalid default value '${d}' for type '${_t}'` });
+      return true;
+    }
+
+    function l_err(l: number, _t: string) {
+      res.status(400).json({ error: `Default value '${d}' exceeds max length of '${l}' characters set by type '${_t}'` });
+      return true;
+    }
+
+    function n_err(n: number, _t: string) {
+      res.status(400).json({ error: `Default value '${d}' exceeds ${n > 0 ? "max" : "min"} value of '${n}' set by type '${_t}'` });
+      return true;
+    }
+
+    function nv_err(d: string, _t: string) {
+      res.status(400).json({ error: `Default value '${d}' is not a valid ${_t}` });
+      return true;
+    }
+
+    switch (t) {
+      case "string":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (d.length > 255) {
+          return l_err(255, t);
+        }
+
+        break;
+
+      case "string_max":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (d.length > MAX_VARCHAR) {
+          return l_err(MAX_VARCHAR, t);
+        }
+
+        break;
+
+      case "string_nolim":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        break;
+
+      case "integer":
+        if (typeof d !== 'number' || d % 1 !== 0) {
+          return t_err(t);
+        }
+
+        if (d < -2147483648 || d > 2147483647) {
+          return n_err(d < 0 ? -2147483647 : 2147483647, t);
+        }
+
+        break;
+
+      case "float":
+        if (typeof d !== 'number') {
+          return t_err(t);
+        }
+        
+        if (d < -2147483648 || d > 2147483647) {
+          return n_err(d < 0 ? -2147483647 : 2147483647, t);
+        }
+
+        break;
+
+      case "boolean":
+        if (typeof d !== 'boolean' && d !== 0 && d !== 1 && d !== '0' && d !== '1' && d !== 'true' && d !== 'false') {
+          return t_err(t);
+        }
+
+        break;
+
+      case "date":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (isNaN(Date.parse(d))) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      case "time":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (isNaN(Date.parse(`1970-01-01T${d}Z`))) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      case "datetime":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (isNaN(Date.parse(d))) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      case "url":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (d.length > 501) {
+          return l_err(500, t);
+        }
+
+        if (!isValidUrl(d)) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      case "email":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (d.length > 320) {
+          return l_err(320, t);
+        }
+
+        if (!isValidEmail(d)) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      case "phone":
+        if (typeof d !== 'number' && typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (typeof d === 'string' && d.length > 20) {
+          return l_err(20, t);
+        }
+
+        if (typeof d === 'number' && d.toString().length > 20) {
+          return l_err(20, t);
+        }
+
+        if (!isValidPhone(d)) {
+          return nv_err(d.toString(), t);
+        }
+
+        break;
+
+      case "array":
+        if (!Array.isArray(d)) {
+          return t_err(t);
+        }
+
+        break;
+
+      case "json":
+        if (typeof d !== 'object') {
+          return t_err(t);
+        }
+
+        break;
+
+      case "emoji":
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        if (d.length > 58) {
+          return l_err(58, t);
+        }
+
+        if (!isValidEmoji(d)) {
+          return nv_err(d, t);
+        }
+
+        break;
+
+      // string_${string} type
+      default:
+        if (typeof d !== 'string') {
+          return t_err(t);
+        }
+
+        const maxLen = parseInt(t.split('_')[1]);
+        if (d.length > maxLen) {
+          return l_err(maxLen, t);
+        }
+
+        break;
+    }
   }
 }
