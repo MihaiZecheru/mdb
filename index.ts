@@ -1,8 +1,9 @@
 import { DatabaseUsers, DatabaseUserEnvironments, DatabaseUserTables } from './database-functions';
-import { errorMessage, isErrorMessage } from './types/basic';
+import { errorMessage, isErrorMessage, field, typeIsVarchar, tableId } from './types/basic';
 import { Environment } from './types/environment';
 import { User } from './types/user';
 import Handle from './handle';
+import { ITable, Table } from './types/table';
 
 require('dotenv').config();
 const port = process.env['PORT'];
@@ -16,8 +17,12 @@ app.use(express.json());
  * 
  * Sends: the help message / link to the docs
  */
-app.get('/', (req: any, res: any) => {
+app.get('/', async (req: any, res: any) => {
   res.send('Hello World!');
+  // const before = Date.now();
+  // res.send(await DatabaseUsers.createUser("tester", "tester", "tester"));
+  // const after = Date.now();
+  // console.log(`Time: ${after - before}ms`);
 });
 
 /**
@@ -98,11 +103,12 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
     return res.status(400).json({ error: `No fields were given to update` });
   }
 
-  const userExists = await DatabaseUsers.getUser(user_id);
-  if (Handle.userExists(userExists, res, user_id)) return;
-
-  const user = await DatabaseUsers.updateUser({ id: user_id, username, password, email });
-  Handle.functionResult(res, user);
+  let user = await DatabaseUsers.getUser(user_id);
+  if (Handle.userExists(user, res, user_id)) return;
+  user = <User>user;
+  
+  const new_user = await DatabaseUsers.updateUser({ id: user_id, username: username || user.username, password: password || user.password, email: email || user.email });
+  Handle.functionResult(res, new_user);
 });
 
 /**
@@ -137,6 +143,10 @@ app.post('/environments/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   const environment_name = req.body.name;
   const environment_description = req.body.description;
+
+  if (environment_name.length > 25) {
+    return res.status(400).json({ error: `Table name '${environment_name}' is too long (max length is 31 characters). Given: ${environment_name.length}` });
+  }
 
   if (Handle.invalidUserId(user_id, res)) return;
 
@@ -329,10 +339,171 @@ app.get('/environments/:env_name/tables', async (req: any, res: any) => {
  * Sends: the created table schema if successful,
  *    otherwise sends an error message
  */
-app.post('/tables/:user_id', (req: any, res: any) => {
+app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.body.table_name;
+  const table_description = req.body.table_description;
+  let table_fields = req.body.fields;
 
-  res.send(`user_id: ${user_id}`);
+  if (table_name.length > 31) {
+    return res.status(400).json({ error: `Table name '${table_name}' is too long (max length is 31 characters). Given: ${table_name.length}` });
+  }
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  if (!table_name || !table_description || !table_fields) {
+    return Handle.missingFieldsError({ table_name, table_description, table_fields }, "body", res);
+  }
+  
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
+  if (Handle.envExists(env_exists, res, env_name)) return;
+
+  const formatted_table_fields: Array<field> = Object.keys(table_fields).map((key) => {
+    if (typeof table_fields[key] === 'string') {
+      // no dict with optional values was passed
+      return {
+        name: key,
+        type: table_fields[key]
+      }
+    } else {
+      // dict with optional values was passed
+      let field: field = {
+        name: key,
+        type: table_fields[key].type,
+      };
+      
+      if (typeof table_fields[key].setNotNull !== 'undefined') {
+        field.setNotNull = table_fields[key].setNotNull;
+      }
+      
+      if (typeof table_fields[key].default !== 'undefined') {
+        field.default = table_fields[key].default;
+      }
+      
+      if (typeof table_fields[key].auto_date !== 'undefined') {
+        field.auto_date = table_fields[key].auto_date;
+      }
+      
+      return field;
+    }
+  });
+  
+  // validate fields
+  for (let field of formatted_table_fields) {
+    if (!field.name) {
+      return res.status(400).json({ error: `Field name cannot be empty` });
+    }
+    
+    if (!(["string", "string_max", "string_nolim", "integer", "float", "boolean", "date", "time", "datetime", "url", "email", "phone", "array", "json", "emoji"].includes(field.type)) && !typeIsVarchar(field.type)) {
+      return res.status(400).json({ error: `Field type '${field.type}' for field '${field.name}' is invalid` });
+    }
+    
+    if (field.default) {
+      // example of default value being invalid: type is 'int', but default value is "hello world"
+      if (Handle.invalidDefaultValue(field.default, field.type, res)) return;
+    }
+    
+    if (field.auto_date && !(["date", "time", "datetime"].includes(field.type))) {
+      return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but is not of the 'date', 'time', or 'datetime' type` });
+    }
+    
+    if (field.auto_date && (field.default || typeof field.setNotNull !== 'undefined')) {
+      return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but was given a 'default' and/or a 'setNotNull' value. When enabling 'auto_date', niether a 'default' or a 'setNotNull' value should be passed` });
+    }
+  };
+  
+  // create the table (api_db) and then link it to the user (user_tables in main_db)
+  const table = await DatabaseUserTables.createTable(user_id, env_name, table_name, table_description, formatted_table_fields);
+  Handle.functionResult(res, table);
+});
+
+app.delete('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  
+  if (Handle.invalidUserId(user_id, res)) return;
+  
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
+  if (Handle.envExists(env_exists, res, env_name)) return;
+
+  const table_exists = await DatabaseUserTables.tableExists(tableId(user_id, env_name, table_name));
+  if (Handle.tableExists(table_exists, res, table_name)) return;
+  
+  const success = await DatabaseUserTables.deleteTable(user_id, env_name, tableId(user_id, env_name, table_name));
+  
+  if (success) {
+    return res.status(200).json({ message: `Table with name '${table_name}' has been successfully deleted` });
+  } else {
+    return res.status(400).json({ error: `Table with name '${table_name}' could not be deleted due to an unknown error` });
+  }
+});
+
+app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const new_table_name = req.body.table_name;
+  const table_description = req.body.table_description;
+  const table_fields = req.body.fields;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+  
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+  
+  const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
+  if (Handle.envExists(env_exists, res, env_name)) return;
+  
+  const table_id = tableId(user_id, env_name, table_name);
+
+  let old_table = await DatabaseUserTables.getTable(table_id, table_name);
+  console.log(old_table)
+  if (Handle.tableExists(old_table, res, table_name)) return;
+  old_table = <Table>old_table;
+
+  const new_table: ITable = {
+    owner_id: parseInt(user_id), // same
+    environment_name: env_name, // same
+    table_id: new_table_name ? tableId(user_id, env_name, new_table_name) : old_table.table_id,
+    tablename: new_table_name || old_table.tablename,
+    description: table_description || old_table.description,
+    fields: table_fields || old_table.fields,
+  };
+
+  const table = await DatabaseUserTables.updateTable(table_id, old_table, new_table);
+  // TODO: go to the update table function and test to make sure the part about new fields / removing fields works
+  Handle.functionResult(res, table);
+});
+
+/**
+ * Get a table by its name from the database.
+ */
+app.get('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
+  if (Handle.envExists(env_exists, res, env_name)) return;
+
+  const table_exists = await DatabaseUserTables.tableExists(tableId(user_id, env_name, table_name));
+  if (Handle.tableExists(table_exists, res, table_name)) return;
+
+  const table = await DatabaseUserTables.getTable(tableId(user_id, env_name, table_name), table_name);
+  Handle.functionResult(res, table);
 });
 
 /**
@@ -340,7 +511,7 @@ app.post('/tables/:user_id', (req: any, res: any) => {
  * 
  * 
  */
-app.get('/tables/:user_id/', (req: any, res: any) => {
+app.get('/tables/:user_id/', async (req: any, res: any) => {
   
 });
   
@@ -349,7 +520,7 @@ app.get('/tables/:user_id/', (req: any, res: any) => {
  * 
  * 
  */
-app.get('/tables/:user_id/count', (req: any, res: any) => {
+app.get('/tables/:user_id/count', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   res.send(`user_id: ${user_id}`);
 });

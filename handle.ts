@@ -71,9 +71,9 @@ export default class Handle {
 
   /**
    * Handle an invalid enivoronment, essentially, handle the result of a call to DatabaseUserEnvironments.getEnvironmentByName
-   * If the environment exists, it will be returned, otherwise an error message will be sent via the 'res' object
+   * If the environment exists, false will be returned and nothing will happen, otherwise an error message will be sent via the 'res' object
    * 
-   * @param envExists The result from the call to the 'DatabaseUsers.environmentExists' (or similar) function
+   * @param envExists The result from the call to the 'DatabaseUserEnvironments.environmentExists' (or similar) function
    * @param res The express.js 'response' object
    * @param env_name The name of the environment that was checked
    * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
@@ -84,6 +84,26 @@ export default class Handle {
       return true;
     } else if (!envExists) {
       res.status(400).json({ error: `Environment '${env_name}' does not exist` });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+     * Handle an invalid table, essentially, handle the result of a call to DatabaseUserEnvironments.getTableByName
+     * If the table exists, false will be returned and nothing will happen, otherwise an error message will be sent via the 'res' object
+     * 
+     * @param tableExists The result from the call to the 'DatabaseUserEnvironments.tableExists' (or similar) function
+     * @param res The express.js 'response' object
+     * @param table_name The name of the table that was checked
+     * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
+     */
+  static tableExists(tableExists: any, res: any, table_name: string) {
+    if (isErrorMessage(tableExists)) {
+      res.status(400).json({ error: tableExists });
+      return true;
+    } else if (!tableExists) {
+      res.status(400).json({ error: `Table '${table_name}' does not exist` });
       return true;
     }
     return false;
@@ -181,22 +201,26 @@ export default class Handle {
    * @param notNull A boolean that indicates whether 'not null' was requested to be set for this field
    * @param res The express.js 'response' object
    */
-  static invalidDefaultValue(d: any, t: fieldtype, notNull, res): boolean {
+  static invalidDefaultValue(d: any, t: fieldtype, res: any): boolean {
+    /** type error */
     function t_err(_t: string): true {
       res.status(400).json({ error: `Invalid default value '${d}' for type '${_t}'` });
       return true;
     }
 
+    /** length error */
     function l_err(l: number, _t: string) {
       res.status(400).json({ error: `Default value '${d}' exceeds max length of '${l}' characters set by type '${_t}'` });
       return true;
     }
 
+    /** number error */
     function n_err(n: number, _t: string) {
       res.status(400).json({ error: `Default value '${d}' exceeds ${n > 0 ? "max" : "min"} value of '${n}' set by type '${_t}'` });
       return true;
     }
 
+    /** invalid value error */
     function nv_err(d: string, _t: string) {
       res.status(400).json({ error: `Default value '${d}' is not a valid ${_t}` });
       return true;
