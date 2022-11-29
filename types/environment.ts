@@ -1,16 +1,16 @@
 import { DatabaseUserEnvironments } from "../database-functions";
-import { tablename, user_id } from "./basic";
+import { env_name, tablename, user_id } from "./basic";
 
 export interface IEnvironment {
   owner_id: user_id;
-  name: string;
+  name: env_name;
   description: string;
   tables: Array<tablename>;
 }
 
 export class Environment implements IEnvironment {
   public readonly owner_id: user_id;
-  public name: string;
+  public name: env_name;
   public description: string;
   public tables: Array<tablename>;
 
@@ -32,7 +32,7 @@ export class Environment implements IEnvironment {
 
   /**
    * Update the environment's name in the database
-   * @param name The user's new name
+   * @param name The environment's new name
    */
   public updateName(name: string): void {
     this.name = name;
@@ -41,7 +41,7 @@ export class Environment implements IEnvironment {
 
   /**
    * Update the environment's description in the database
-   * @param description The user's new description
+   * @param description The environment's new description
    */
    public updateDescription(description: string): void {
     this.description = description;
