@@ -129,6 +129,29 @@ export class DatabaseUsers {
       return "ERROR: " + (err as Error).message;
     }
   }
+
+  static async getTables(user_id: user_id, full: boolean = false): Promise<Array<ITable> | Array<table_id> | errorMessage> {
+    try {
+      if (full) {
+        const res = await db.query(`SELECT * FROM user_tables WHERE owner_id = $1`, [user_id]);
+        return res.rows.map((row: any) => new Table(row));
+      } else {
+        const res = await db.query(`SELECT table_id FROM user_tables WHERE owner_id = $1`, [user_id]);
+        return res.rows.map((row: any) => row.table_id);
+      }
+    } catch (err) {
+      return "ERROR: " + (err as Error).message;
+    }
+  }
+
+  static async getTablesCount(user_id: user_id): Promise<number | errorMessage> {
+    try {
+      const res = await db.query(`SELECT count FROM user_tables_tracker WHERE user_id = $1`, [user_id]);
+      return res.rows[0].count;
+    } catch (err) {
+      return "ERROR: " + (err as Error).message;
+    }
+  }
 }
 
 /**
@@ -138,11 +161,11 @@ export class DatabaseUsers {
  */
 export class DatabaseUserEnvironments {
   /**
-   * Get the environments for a user from the main database
+   * Get the environment names for a user from the main database
    * @param user_id The user's id
-   * @returns An array of the user's environments or an errorMessage
+   * @returns An array of the user's environment names or an errorMessage
    */
-  static async getAllEnvironments(user_id: user_id): Promise<Array<string> | errorMessage> {
+  static async getAllEnvironmentNames(user_id: user_id): Promise<Array<string> | errorMessage> {
     try {
       const environments = (await db.query('SELECT environments FROM user_environment_tracker WHERE user_id = $1', [user_id])).rows[0].environments;
 
@@ -156,8 +179,27 @@ export class DatabaseUserEnvironments {
     }
   }
 
-  static async getEnvironmentByName(user_id: user_id, environment_name: string): Promise<Environment | errorMessage | undefined> {
+  /**
+   * Get the environments for a user from the main database
+   * @param user_id The user's id
+   * @returns An array of the user's environments or an errorMessage
+   */
+   static async getAllEnvironments(user_id: user_id): Promise<Array<Environment> | errorMessage> {
+    try {
+      const environments = (await db.query('SELECT * FROM user_environments WHERE owner_id = $1', [user_id])).rows;
 
+      if (!environments.length) {
+        return [];       
+      } else {
+        environments.forEach((env: any) => env.tables = JSON.parse(env.tables));
+        return environments.map((environment: any) => new Environment(environment));
+      }
+    } catch (err) {
+      return "ERROR: " + (err as Error).message;
+    }
+  }
+
+  static async getEnvironmentByName(user_id: user_id, environment_name: string): Promise<Environment | errorMessage | undefined> {
     try {
       const res = await db.query('SELECT * FROM user_environments WHERE owner_id = $1 AND name = $2', [user_id, environment_name]);
 
@@ -195,7 +237,7 @@ export class DatabaseUserEnvironments {
     const user_id = (user instanceof User) ? user.id : user;
 
     try {
-      const envs = await this.getAllEnvironments(user_id);
+      const envs = await this.getAllEnvironmentNames(user_id);
       
       if (isErrorMessage(envs)) {
         return <errorMessage>envs;
@@ -232,7 +274,7 @@ export class DatabaseUserEnvironments {
   
   /**
    * Delete an environment from the main database
-   * @param user_id The id of the user whom the environment belongs to
+   * @param user The user whom the environment belongs to
    * @param name The name of the environment
    * @returns The success value
    */
@@ -241,8 +283,21 @@ export class DatabaseUserEnvironments {
     const user_id = (user instanceof User) ? user.id : user;
 
     try {
+      // get all tables in the environment
+      const tables = await DatabaseUserEnvironments.getTableNames(user_id, name);
+      
+      if (isErrorMessage(tables)) {
+        return false;
+      }
+      
+      for (let i = 0; i < tables.length; i++) {
+        // delete table from the api database and the main database; handles deleting the table
+        const success = await DatabaseUserTables.deleteTable(user_id, name, tables[i]);
+        if (!success) return false;
+      }
+
       // get current environments
-      let envs: Array<string> = await this.getAllEnvironments(user_id) as Array<string>;
+      let envs: Array<string> = await this.getAllEnvironmentNames(user_id) as Array<string>;
 
       if (isErrorMessage(envs)) {
         return false;
@@ -273,7 +328,7 @@ export class DatabaseUserEnvironments {
 
       if (name_change) {
         // update the user_environment_tracker table as well
-        let envs = await this.getAllEnvironments(env.owner_id);
+        let envs = await this.getAllEnvironmentNames(env.owner_id);
         
         if (isErrorMessage(envs)) {
           return <errorMessage>envs;
@@ -294,24 +349,21 @@ export class DatabaseUserEnvironments {
    * @param user_id The id of the user whom the environment belongs to
    * @param environment_name The name of the environment
    */
-  static async getTables(user: user_id, environment_name: string): Promise<Array<string> | errorMessage>;
+  static async getTableNames(user: user_id, environment_name: string): Promise<Array<string> | errorMessage>;
 
   /**
    * Get all tables under an environment
    * @param user_id The id of the user whom the environment belongs to
    * @param environment_name The name of the environment
    */
-  static async getTables(user: IUser, environment_name: string): Promise<Array<string> | errorMessage>;
-  static async getTables(user: any, environment_name: string): Promise<Array<table_id> | errorMessage> {
+  static async getTableNames(user: IUser, environment_name: string): Promise<Array<string> | errorMessage>;
+  static async getTableNames(user: any, environment_name: string): Promise<Array<table_id> | errorMessage> {
     const user_id = (user instanceof User) ? user.id : user;
 
     try {
       const tables = (await db.query('SELECT tables FROM user_environments WHERE owner_id = $1 AND name = $2', [user_id, environment_name])).rows[0].tables;
       const parsed_tables = JSON.parse(tables);
       return parsed_tables;
-      // return parsed_tables.map((table: string) => {
-      //   return `_${user_id}_${environment_name}_${table}`; // FIXME: might have to fix TODO:
-      // });
     } catch (err) {
       return "ERROR: " + (err as Error).message;
     }
@@ -359,7 +411,7 @@ export class DatabaseUserTables {
       await db.query(`INSERT INTO user_tables (owner_id, table_id, environment_name, tablename, description, fields) VALUES ($1, $2, $3, $4, $5, $6)`, [id, table_id, env_name, name, description, JSON.stringify(fields)]);
 
       // link the table to the environment
-      let env_tables = await DatabaseUserEnvironments.getTables(id, env_name);
+      let env_tables = await DatabaseUserEnvironments.getTableNames(id, env_name);
 
       if (isErrorMessage(env_tables)) {
         return <errorMessage>env_tables;
@@ -499,7 +551,7 @@ export class DatabaseUserTables {
       await db.query(`UPDATE user_tables_tracker SET tables = $1, count = (count - 1) WHERE user_id = $2`, [JSON.stringify(new_tables), user_id]);
 
       // remove table link from environment
-      let env_tables = await DatabaseUserEnvironments.getTables(user_id, env_name);
+      let env_tables = await DatabaseUserEnvironments.getTableNames(user_id, env_name);
       
       if (isErrorMessage(env_tables)) {
         return false;
@@ -567,43 +619,57 @@ export class DatabaseUserTables {
     }
   }
 
-  static async updateTable(table_id: table_id, old_table: ITable, new_table: ITable): Promise<Table | errorMessage> {
-    // TODO: test to make sure the part about new fields / removing fields works
+  static async updateTable(
+    table_id: table_id,
+    old_table: ITable,
+    new_table: ITable,
+    fields_to_add: Array<field> = [],
+    fields_to_remove: Array<field> = [],
+    fields_to_rename: Array<{ new_name: tablename, old_name: tablename}> = []
+): Promise<Table | errorMessage> {
     try {
       if (old_table.description !== new_table.description) {
         await db.query(`UPDATE user_tables SET description = $1 WHERE table_id = $2`, [new_table.description, table_id]);
       }
 
-      let old_fields = old_table.fields;
-      let new_fields = new_table.fields;
+      // remove fields
+      if (fields_to_remove.length) {
+        let remove_fields = "";
 
-      // check if fields have been added
-      for (let i = 0; i < new_fields.length; i++) {
-        const new_field = new_fields[i];
-        const old_field = old_fields.find((field) => field.name === new_field.name);
-
-        if (!old_field) {
-          await api_db.query(`ALTER TABLE ${table_id} ADD COLUMN ${new_field.name} ${this.generateCustomFields([new_field])}`);
+        for (let i = 0; i < fields_to_remove.length; i++) {
+          remove_fields += `${fields_to_remove[i].name}, `;
         }
+
+        await api_db.query(`ALTER TABLE ${table_id} DROP COLUMN ${remove_fields.substring(0, remove_fields.length - 2)}`);
       }
 
-      // check if fields have been removed
-      for (let i = 0; i < old_fields.length; i++) {
-        const old_field = old_fields[i];
-        const new_field = new_fields.find((field) => field.name === old_field.name);
-
-        if (!new_field) {
-          await api_db.query(`ALTER TABLE ${table_id} DROP COLUMN ${old_field.name}`);
-        }
+      // add fields
+      if (fields_to_add.length) {
+        await api_db.query(`ALTER TABLE ${table_id} ADD COLUMN ${this.generateCustomFields(fields_to_add)}`);
       }
 
+      // rename fields
+      for (let i = 0; i < fields_to_rename.length; i++) {
+        // await api_db.query(`ALTER TABLE ${table_id} RENAME COLUMN ${fields_to_rename[i].old_name} TO ${fields_to_rename[i].new_name}`);
+
+        let old_fields = old_table.fields;
+        console.log(old_fields);
+        old_fields.find((field) => field.name === fields_to_rename[i].old_name)!.name = fields_to_rename[i].new_name;
+
+        await db.query(`UPDATE user_tables SET fields = $1 WHERE table_id = $2`, [JSON.stringify(old_fields), table_id]);
+      }
+
+      // rename table
       if (old_table.tablename !== new_table.tablename) {
-        // rename table
+        // rename table in the database
         await api_db.query(`ALTER TABLE ${table_id} RENAME TO ${new_table.table_id}`);
+
         // rename serial sequence for table
         await api_db.query(`ALTER SEQUENCE IF EXISTS ${table_id}__id_seq RENAME TO ${new_table.table_id}__id_seq`);
+
         // rename in user_tables (table metadata)
         await db.query(`UPDATE user_tables SET tablename = $1, table_id = $2 WHERE table_id = $3`, [new_table.tablename, new_table.table_id, table_id]);
+
         // rename in user_tables_tracker
         const tables = await this.getAllTableIds(old_table.owner_id);
 
@@ -617,7 +683,14 @@ export class DatabaseUserTables {
 
       return new Table(new_table);
     } catch (err) {
-      return "ERROR: " + (err as Error).message;
+      const msg = (err as Error).message;
+
+      if ((/^column \"(.*?)\" of relation \"(.*?)\" does not exist$/).test(msg)) {
+        const match: RegExpMatchArray = <RegExpMatchArray>msg.match(/^column \"(.*?)\" of relation \"(.*?)\" does not exist$/);
+        return `ERROR: field '${match[1]}' does not exist in table '${match[2]}'`;
+      }
+
+      return "ERROR: " + msg;
     }
   }
 }

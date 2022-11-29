@@ -1,5 +1,5 @@
-import { DatabaseUserEnvironments, DatabaseUsers } from "./database-functions";
-import { errorMessage, fieldtype, isErrorMessage, user_id } from "./types/basic";
+import { errorMessage, fieldtype, isErrorMessage, user_id, field, typeIsVarchar, tableId, tablename } from "./types/basic";
+import { DatabaseUserEnvironments, DatabaseUsers, DatabaseUserTables } from "./database-functions";
 import { Environment } from "./types/environment";
 import { Table } from "./types/table";
 import { User } from "./types/user";
@@ -60,7 +60,7 @@ export default class Handle {
    */
    static userExists(userExists: any, res: any, user_id: user_id): boolean {
     if (isErrorMessage(userExists)) {
-      res.status(400).json({ error: userExists });
+      res.status(400).json({ error: <errorMessage>userExists });
       return true;
     } else if (!userExists) {
       res.status(400).json({ error: `User with id '${user_id}' does not exist` });
@@ -80,7 +80,7 @@ export default class Handle {
    */
   static envExists(envExists: any, res: any, env_name: string) {
     if (isErrorMessage(envExists)) {
-      res.status(400).json({ error: envExists });
+      res.status(400).json({ error: <errorMessage>envExists });
       return true;
     } else if (!envExists) {
       res.status(400).json({ error: `Environment '${env_name}' does not exist` });
@@ -90,7 +90,7 @@ export default class Handle {
   }
 
   /**
-     * Handle an invalid table, essentially, handle the result of a call to DatabaseUserEnvironments.getTableByName
+     * Handle an invalid table, essentially, handle the result of a call to DatabaseUserTables.getTable
      * If the table exists, false will be returned and nothing will happen, otherwise an error message will be sent via the 'res' object
      * 
      * @param tableExists The result from the call to the 'DatabaseUserEnvironments.tableExists' (or similar) function
@@ -100,7 +100,7 @@ export default class Handle {
      */
   static tableExists(tableExists: any, res: any, table_name: string) {
     if (isErrorMessage(tableExists)) {
-      res.status(400).json({ error: tableExists });
+      res.status(400).json({ error: <errorMessage>tableExists });
       return true;
     } else if (!tableExists) {
       res.status(400).json({ error: `Table '${table_name}' does not exist` });
@@ -187,9 +187,28 @@ export default class Handle {
     if (Handle.invalidUserId(user_id, res)) return;
 
     const user = await DatabaseUsers.getUser(user_id);
-    if (await Handle.userExists(user, res, user_id)) return;
+    if (Handle.userExists(user, res, user_id)) return;
 
     return <User>user;
+  }
+
+  static async APIcall_GetTablesProperty(req: any, res: any): Promise<Table | void> {
+    const user_id = req.params.user_id;
+    const env_name = req.params.env_name;
+    const table_name = req.params.table_name;
+
+    if (Handle.invalidUserId(user_id, res)) return;
+
+    const userExists = await DatabaseUsers.userExists(user_id);
+    if (Handle.userExists(userExists, res, user_id)) return;
+
+    const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
+    if (Handle.envExists(env_exists, res, env_name)) return;
+
+    const table = await DatabaseUserTables.getTable(tableId(user_id, env_name, table_name), table_name);
+    if (Handle.tableExists(table, res, table_name)) return;
+
+    return <Table>table;
   }
 
   /**
@@ -408,6 +427,78 @@ export default class Handle {
         }
 
         break;
+    }
+
+    return false;
+  }
+
+  static formatTableFieldsAndValidation(table_fields: any, res: any): [boolean, any] {
+    const formatted_table_fields: Array<field> = Object.keys(table_fields).map((key) => {
+      if (typeof table_fields[key] === 'string') {
+        // no dict with optional values was passed
+        return {
+          name: key,
+          type: table_fields[key]
+        }
+      } else {
+        // dict with optional values was passed
+        let field: field = {
+          name: key,
+          type: table_fields[key].type,
+        };
+        
+        if (typeof table_fields[key].setNotNull !== 'undefined') {
+          field.setNotNull = table_fields[key].setNotNull;
+        }
+        
+        if (typeof table_fields[key].default !== 'undefined') {
+          field.default = table_fields[key].default;
+        }
+        
+        if (typeof table_fields[key].auto_date !== 'undefined') {
+          field.auto_date = table_fields[key].auto_date;
+        }
+        
+        return field;
+      }
+    });
+    
+    // validate fields
+    for (let field of formatted_table_fields) {
+      if (!field.name) {
+        return res.status(400).json({ error: `Field name cannot be empty` });
+      }
+      
+      if (!(["string", "string_max", "string_nolim", "integer", "float", "boolean", "date", "time", "datetime", "url", "email", "phone", "array", "json", "emoji"].includes(field.type)) && !typeIsVarchar(field.type)) {
+        return res.status(400).json({ error: `Field type '${field.type}' for field '${field.name}' is invalid` });
+      }
+      
+      if (field.default) {
+        // example of default value being invalid: type is 'int', but default value is "hello world"
+        if (Handle.invalidDefaultValue(field.default, field.type, res)) return [true, null];
+      }
+      
+      if (field.auto_date && !(["date", "time", "datetime"].includes(field.type))) {
+        return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but is not of the 'date', 'time', or 'datetime' type` });
+      }
+      
+      if (field.auto_date && (field.default || typeof field.setNotNull !== 'undefined')) {
+        return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but was given a 'default' and/or a 'setNotNull' value. When enabling 'auto_date', niether a 'default' or a 'setNotNull' value should be passed` });
+      }
+    };
+
+    return [false, formatted_table_fields]; // tables are valid; no error
+  }
+
+  static invalidNameAndDescLengths(table_name: string, table_description: string, res: any): boolean {
+    if (table_name && table_name.length > 31) {
+      res.status(400).json({ error: `Table name '${table_name}' is too long (max length is 31 characters). Given: ${table_name.length}` });
+      return true;
+    }
+  
+    if (table_description && table_description.length > 500) {
+      res.status(400).json({ error: `Table description '${table_description}' is too long (max length is 500 characters). Given: ${table_description.length}` });
+      return true;
     }
 
     return false;

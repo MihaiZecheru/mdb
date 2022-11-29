@@ -15,6 +15,10 @@ export class Environment implements IEnvironment {
   public tables: Array<tablename>;
 
   public constructor(env: IEnvironment) {
+    if (typeof env.tables === 'string') {
+      env.tables = JSON.parse(env.tables);
+    }
+    
     this.owner_id = env.owner_id;
     this.name = env.name;
     this.description = env.description;

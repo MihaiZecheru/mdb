@@ -1,9 +1,11 @@
 import { DatabaseUsers, DatabaseUserEnvironments, DatabaseUserTables } from './database-functions';
-import { errorMessage, isErrorMessage, field, typeIsVarchar, tableId } from './types/basic';
-import { Environment } from './types/environment';
+import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_name } from './types/basic';
+import { Environment, IEnvironment } from './types/environment';
 import { User } from './types/user';
 import Handle from './handle';
 import { ITable, Table } from './types/table';
+import db from './database-config/main-database-config';
+import api_db from './database-config/api-database-config';
 
 require('dotenv').config();
 const port = process.env['PORT'];
@@ -18,12 +20,30 @@ app.use(express.json());
  * Sends: the help message / link to the docs
  */
 app.get('/', async (req: any, res: any) => {
-  res.send('Hello World!');
+  // res.status(200).send('Hello World!');
+
   // const before = Date.now();
   // res.send(await DatabaseUsers.createUser("tester", "tester", "tester"));
   // const after = Date.now();
   // console.log(`Time: ${after - before}ms`);
 });
+
+/**
+ * Documentation page of the application
+ * 
+ * Sends: the documentation as an HTML page
+ */
+app.get('/docs/', async (req: any, res: any) => {
+  res.send('Hello World!');
+});
+
+
+
+/***************************/
+/********** USERS **********/
+/***************************/
+
+
 
 /**
  * Creates a new user
@@ -67,21 +87,21 @@ app.get('/users/:user_id/username', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
 
-  res.status(200).json({ username: (<User>user).username });
+  res.status(200).json((<User>user).username);
 });
 
 app.get('/users/:user_id/password', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
 
-  res.status(200).json({ password: (<User>user).password });
+  res.status(200).json((<User>user).password);
 });
 
 app.get('/users/:user_id/email', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
 
-  res.status(200).json({ email: (<User>user).email });
+  res.status(200).json((<User>user).email);
 });
 
 /**
@@ -134,18 +154,150 @@ app.delete('/users/:user_id', async (req: any, res: any) => {
 });
 
 /**
+ * Get the tables linked to the user specified by `user_id`
+ * 
+ * Sends: the id of all tables linked to the user,
+ *        otherwise, an error message
+ */
+ app.get('/users/:user_id/tables', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const tables = await DatabaseUsers.getTables(user_id, true);
+  
+  if (isErrorMessage(tables)) {
+    return res.status(400).json({ error: <errorMessage>tables });
+  }
+
+  const r = req.query?.return;
+
+  if (r === "id" || r === "ids") {
+    const ids: Array<table_id> = (<Array<ITable>>tables).map(table => table.table_id);
+    return res.status(200).json(ids);
+  } else if (r === "name" || r === "names") {
+    const names: Array<tablename> = (<Array<ITable>>tables).map(table => table.tablename);
+    return res.status(200).json(names);
+  } else if (r === "id_name" || r === "id_names" || r === "ids_name" || r === "ids_names") {
+    const id_names: Array<{ id: table_id, name: tablename }> = (<Array<ITable>>tables).map(table => ({ id: table.table_id, name: table.tablename }));
+    return res.status(200).json(id_names);
+  }
+
+  // else: the whole table
+  return res.status(200).json(<Array<table_id>>tables);
+});
+
+/**
+ * Get the amount of tables linked to the user specified by `user_id`
+ * 
+ * Sends: the amount of tables linked to the user,
+ *        otherwise, an error message
+ */
+ app.get('/users/:user_id/tables/count', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const count = await DatabaseUsers.getTablesCount(user_id);
+  
+  if (isErrorMessage(count)) {
+    return res.status(400).json({ error: <errorMessage>count });
+  }
+
+  return res.status(200).json(<number>count);
+});
+
+/**
+ * Get the environments linked to the user specified by `user_id`
+ * 
+ * Sends: the id of all environments linked to the user,
+ *        otherwise, an error message
+ */
+ app.get('/users/:user_id/environments', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const envs = await DatabaseUserEnvironments.getAllEnvironments(user_id);
+  
+  if (isErrorMessage(envs)) {
+    return res.status(400).json({ error: <errorMessage>envs });
+  }
+
+  const r = req.query?.return;
+
+  if (r === "name" || r === "names") {
+    const names: Array<env_name> = (<Array<IEnvironment>>envs).map(env => env.name);
+    return res.status(200).json(names);
+  } else if (r === "description" || r === "descriptions") {
+    const descriptions: Array<string> = (<Array<IEnvironment>>envs).map(env => env.description);
+    return res.status(200).json(descriptions);
+  } else if (r === "table_id" || r === "table_name") {
+    const table_ids: Array<table_id[]> = (<Array<IEnvironment>>envs).map(env => env.tables);
+    return res.status(200).json(table_ids);
+  }
+
+  // else: the whole environment
+  return res.status(200).json(<Array<IEnvironment>>envs);
+});
+
+/**
+ * Get the amount of environments the user with the given `user_id` has
+ * 
+ * Sends: the amount of environments if successful,
+ *     otherwise sends an error message
+ */
+ app.get('/users/:user_id/environments/count', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  const userExists = await DatabaseUsers.userExists(user_id);
+  if (Handle.userExists(userExists, res, user_id)) return;
+
+  const count = await DatabaseUserEnvironments.getEnvironmentCount(user_id);
+
+  if (isErrorMessage(count)) {
+    res.status(400).json({ error: <errorMessage>count });
+  } else {
+    res.status(200).json(count);
+  }
+});
+
+
+
+/**********************************/
+/********** ENVIRONMENTS **********/
+/**********************************/
+
+
+
+/**
  * Create a new environment for a user with the given `user_id`
  * 
  * Sends: the new environment if successful,
  *        otherwise sends an error message
  */
-app.post('/environments/:user_id', async (req: any, res: any) => {
-  const user_id = req.params.user_id;
+app.post('/environments/', async (req: any, res: any) => {
+  const user_id = req.query.user_id;
   const environment_name = req.body.name;
   const environment_description = req.body.description;
 
   if (environment_name.length > 25) {
     return res.status(400).json({ error: `Table name '${environment_name}' is too long (max length is 31 characters). Given: ${environment_name.length}` });
+  }
+
+  if (!user_id) {
+    return Handle.missingFieldsError({ user_id }, "query", res);
   }
 
   if (Handle.invalidUserId(user_id, res)) return;
@@ -170,24 +322,24 @@ app.post('/environments/:user_id', async (req: any, res: any) => {
  * Sends: a confirmation message if successful,
  *       otherwise sends an error message
  */
-app.delete('/environments/:user_id', async (req: any, res: any) => {
-  const user_id = req.params.user_id;
-  const environment_name = req.body.name;
+app.delete('/environments/:env_name/', async (req: any, res: any) => {
+  const user_id = req.query.user_id;
+  const environment_name = req.params.env_name;
 
   if (Handle.invalidUserId(user_id, res)) return;
 
-  if (!environment_name) {
-    return Handle.missingFieldsError({ name: environment_name }, "body", res);
+  if (!user_id) {
+    return Handle.missingFieldsError({ user_id }, "query", res);
   }
 
-  const envExists = await DatabaseUserEnvironments.environmentExists(user_id, environment_name);
-  if (Handle.envExists(envExists, res, environment_name)) return;
-  
   const user = await DatabaseUsers.getUser(user_id);
 
   if (!user) {
     return res.status(400).json({ error: `User with id '${user_id}' does not exist` });
   }
+
+  const envExists = await DatabaseUserEnvironments.environmentExists(user_id, environment_name);
+  if (Handle.envExists(envExists, res, environment_name)) return;
 
   const success = await DatabaseUserEnvironments.deleteEnvironment(<User>user, environment_name);
 
@@ -199,15 +351,15 @@ app.delete('/environments/:user_id', async (req: any, res: any) => {
 });
 
 /**
- * Updates the environment with the given `name` in the body from the user with the given `user_id`
+ * Updates the environment with the given `old_name` from the user with the given `user_id`
  * Fields to update: (name, description)
  * 
  * Sends: the updated environment if successful,
  *       otherwise sends an error message
  */
-app.patch('/environments/:user_id', async (req: any, res: any) => {
+app.patch('/environments/:user_id/:old_name', async (req: any, res: any) => {
   const user_id = req.params.user_id;
-  const old_environment_name = req.body.old_name;
+  const old_environment_name = req.params.old_name;
   const new_environment_name = req.body.new_name;
   const environment_description = req.body.description;
 
@@ -271,42 +423,6 @@ app.get('/environments/:env_name', async (req: any, res: any) => {
 });
 
 /**
- * Get the amount of environments the user with the given `user_id` has
- * 
- * Sends: the amount of environments if successful,
- *     otherwise sends an error message
- */
-app.get('/environments/:user_id/count', async (req: any, res: any) => {
-  const user_id = req.params.user_id;
-
-  if (Handle.invalidUserId(user_id, res)) return;
-
-  const userExists = await DatabaseUsers.userExists(user_id);
-  if (Handle.userExists(userExists, res, user_id)) return;
-
-  const count = await DatabaseUserEnvironments.getEnvironmentCount(user_id);
-
-  if (isErrorMessage(count)) {
-    res.status(400).json({ error: count });
-  } else {
-    res.status(200).json({ count });
-  }
-});
-
-/**
- * Get the `owner_id` of the environment with the given `name` from the user with the given `user_id`
- * 
- * Sends: the `owner_id` if successful,
- *    otherwise sends an error message
- */
-app.get('/environments/:env_name/owner_id', async (req: any, res: any) => {
-  const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
-  if (!result) return; // the func has already sent a response
-  
-  return res.status(200).json({ owner_id: (<Environment>result).owner_id });
-});
-
-/**
  * Get the `description` of the environment with the given `name` from the user with the given `user_id`
  * 
  * Sends: the `description` if successful,
@@ -316,7 +432,7 @@ app.get('/environments/:env_name/description', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
 
-  return res.status(200).json({ description: (<Environment>result).description });
+  return res.status(200).json((<Environment>result).description);
 });
 
 /**
@@ -329,8 +445,16 @@ app.get('/environments/:env_name/tables', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
 
-  return res.status(200).json({ tables: (<Environment>result).tables });
+  return res.status(200).json((<Environment>result).tables);
 });
+
+
+
+/****************************/
+/********** TABLES **********/
+/****************************/
+
+
 
 /**
  * Create a table and then link it to the user with the given `user_id`
@@ -346,10 +470,11 @@ app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
   const table_description = req.body.table_description;
   let table_fields = req.body.fields;
 
-  if (table_name.length > 31) {
-    return res.status(400).json({ error: `Table name '${table_name}' is too long (max length is 31 characters). Given: ${table_name.length}` });
+  if (table_name === '_id') {
+    return res.status(400).json({ error: `Field name '${table_name}' is reserved` });
   }
 
+  if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
 
   if (!table_name || !table_description || !table_fields) {
@@ -362,59 +487,10 @@ app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
   const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
   if (Handle.envExists(env_exists, res, env_name)) return;
 
-  const formatted_table_fields: Array<field> = Object.keys(table_fields).map((key) => {
-    if (typeof table_fields[key] === 'string') {
-      // no dict with optional values was passed
-      return {
-        name: key,
-        type: table_fields[key]
-      }
-    } else {
-      // dict with optional values was passed
-      let field: field = {
-        name: key,
-        type: table_fields[key].type,
-      };
-      
-      if (typeof table_fields[key].setNotNull !== 'undefined') {
-        field.setNotNull = table_fields[key].setNotNull;
-      }
-      
-      if (typeof table_fields[key].default !== 'undefined') {
-        field.default = table_fields[key].default;
-      }
-      
-      if (typeof table_fields[key].auto_date !== 'undefined') {
-        field.auto_date = table_fields[key].auto_date;
-      }
-      
-      return field;
-    }
-  });
+  const result: [boolean, any] = Handle.formatTableFieldsAndValidation(table_fields, res);
+  if (result[0]) return; // api call was resolved in the function
   
-  // validate fields
-  for (let field of formatted_table_fields) {
-    if (!field.name) {
-      return res.status(400).json({ error: `Field name cannot be empty` });
-    }
-    
-    if (!(["string", "string_max", "string_nolim", "integer", "float", "boolean", "date", "time", "datetime", "url", "email", "phone", "array", "json", "emoji"].includes(field.type)) && !typeIsVarchar(field.type)) {
-      return res.status(400).json({ error: `Field type '${field.type}' for field '${field.name}' is invalid` });
-    }
-    
-    if (field.default) {
-      // example of default value being invalid: type is 'int', but default value is "hello world"
-      if (Handle.invalidDefaultValue(field.default, field.type, res)) return;
-    }
-    
-    if (field.auto_date && !(["date", "time", "datetime"].includes(field.type))) {
-      return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but is not of the 'date', 'time', or 'datetime' type` });
-    }
-    
-    if (field.auto_date && (field.default || typeof field.setNotNull !== 'undefined')) {
-      return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but was given a 'default' and/or a 'setNotNull' value. When enabling 'auto_date', niether a 'default' or a 'setNotNull' value should be passed` });
-    }
-  };
+  const formatted_table_fields: Array<field> = result[1];
   
   // create the table (api_db) and then link it to the user (user_tables in main_db)
   const table = await DatabaseUserTables.createTable(user_id, env_name, table_name, table_description, formatted_table_fields);
@@ -452,8 +528,13 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   const table_name = req.params.table_name;
   const new_table_name = req.body.table_name;
   const table_description = req.body.table_description;
-  const table_fields = req.body.fields;
-
+  
+  // get fields to add, remove, and rename
+  let fields_to_add: Array<field> = req.body.add_fields;
+  let fields_to_remove: Array<field> = req.body.remove_fields;
+  let fields_to_rename: { [old_name: string]: string } = req.body.rename_fields;
+  
+  if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
@@ -463,23 +544,65 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   if (Handle.envExists(env_exists, res, env_name)) return;
   
   const table_id = tableId(user_id, env_name, table_name);
-
+  
   let old_table = await DatabaseUserTables.getTable(table_id, table_name);
-  console.log(old_table)
   if (Handle.tableExists(old_table, res, table_name)) return;
   old_table = <Table>old_table;
-
+  
   const new_table: ITable = {
     owner_id: parseInt(user_id), // same
     environment_name: env_name, // same
     table_id: new_table_name ? tableId(user_id, env_name, new_table_name) : old_table.table_id,
     tablename: new_table_name || old_table.tablename,
     description: table_description || old_table.description,
-    fields: table_fields || old_table.fields,
+    fields: old_table.fields,
   };
+  
+  if (fields_to_add) {
+    const add_result = Handle.formatTableFieldsAndValidation(fields_to_add, res);
+    if (add_result[0]) return; // api call was resolved in the function
+    fields_to_add = add_result[1];
+  }
+  
+  if (fields_to_remove) {
+    const remove_result = Handle.formatTableFieldsAndValidation(fields_to_remove, res);
+    if (remove_result[0]) return; // api call was resolved in the function
+    fields_to_remove = remove_result[1];
+  }
+  
+  // validate fields_to_rename
+  var fields_to_rename_formatted: Array<{ old_name: tablename, new_name: tablename}> = [];
+  if (fields_to_rename) {
+    for (let [old_name, new_name] of Object.entries(fields_to_rename)) {
+      // check if the old name exists
+      if (!old_table.fields.find((field) => field.name === old_name)) {
+        return res.status(400).json({ error: `Field with name '${old_name}' does not exist in table '${table_name}'` });
+      }
+      
+      // check if the new name is valid
+      if (Handle.invalidNameAndDescLengths(new_name, "", res)) return;
 
-  const table = await DatabaseUserTables.updateTable(table_id, old_table, new_table);
-  // TODO: go to the update table function and test to make sure the part about new fields / removing fields works
+      // check if the new name already exists
+      if (old_table.fields.find((field) => field.name === new_name)) {
+        return res.status(400).json({ error: `Field with name '${new_name}' already exists in table '${table_name}'` });
+      }
+
+      // check if the new name is a reserved word
+      if (new_name === '_id') {
+        return res.status(400).json({ error: `Field name '${new_name}' is reserved` });
+      }
+
+      // check if the new name is the same as the old name
+      if (old_name === new_name) {
+        return res.status(400).json({ error: `New field name '${new_name}' cannot be the same as the old field name` });
+      }
+
+      fields_to_rename_formatted.push({ old_name, new_name });
+    }
+  }
+  
+  console.log(fields_to_rename_formatted)
+  const table = await DatabaseUserTables.updateTable(table_id, old_table, new_table, (fields_to_add) ? fields_to_add : [], (fields_to_remove) ? fields_to_remove : [], (fields_to_rename) ? fields_to_rename_formatted : []);
   Handle.functionResult(res, table);
 });
 
@@ -499,31 +622,86 @@ app.get('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) => 
   const env_exists = await DatabaseUserEnvironments.environmentExists(user_id, env_name);
   if (Handle.envExists(env_exists, res, env_name)) return;
 
-  const table_exists = await DatabaseUserTables.tableExists(tableId(user_id, env_name, table_name));
-  if (Handle.tableExists(table_exists, res, table_name)) return;
-
   const table = await DatabaseUserTables.getTable(tableId(user_id, env_name, table_name), table_name);
   Handle.functionResult(res, table);
 });
 
 /**
- * Get the tables linked to the user specified by `user_id`
- * 
- * 
+ * Get the table_id of a table named 'table_name' from the database.
  */
-app.get('/tables/:user_id/', async (req: any, res: any) => {
-  
+app.get('/tables/:user_id/:env_name/:table_name/id', async (req: any, res: any) => {
+  const table = await Handle.APIcall_GetTablesProperty(req, res);
+  if (!table) return;
+
+  res.status(200).json((<Table>table).table_id);
 });
-  
+
 /**
- * Get the amount of tables linked to the user specified by `user_id`
- * 
- * 
+ * Get the tablename of a table named 'table_name' from the database.
  */
-app.get('/tables/:user_id/count', async (req: any, res: any) => {
-  const user_id = req.params.user_id;
-  res.send(`user_id: ${user_id}`);
+app.get('/tables/:user_id/:env_name/:table_name/name', async (req: any, res: any) => {
+  const table = await Handle.APIcall_GetTablesProperty(req, res);
+  if (!table) return;
+
+  res.status(200).json((<Table>table).tablename);
 });
+
+/**
+ * Get the environment_name of a table named 'table_name' from the database.
+ */
+app.get('/tables/:user_id/:env_name/:table_name/env_name', async (req: any, res: any) => {
+  const table = await Handle.APIcall_GetTablesProperty(req, res);
+  if (!table) return;
+
+  res.status(200).json((<Table>table).environment_name);
+});
+
+/**
+ * Get the description of a table named 'table_name' from the database.
+ */
+app.get('/tables/:user_id/:env_name/:table_name/description', async (req: any, res: any) => {
+  const table = await Handle.APIcall_GetTablesProperty(req, res);
+  if (!table) return;
+
+  res.status(200).json((<Table>table).description);
+});
+
+/**
+ * Get the fields of a table named 'table_name' from the database.
+ */
+app.get('/tables/:user_id/:env_name/:table_name/fields', async (req: any, res: any) => {
+  const table = await Handle.APIcall_GetTablesProperty(req, res);
+  if (!table) return;
+
+  res.status(200).json((<Table>table).fields);
+});
+
+
+
+/****************************/
+/*********** APIS ***********/
+/****************************
+
+   In order to increase performance,
+   database queries are done locally
+   in the function, unlike the other
+   routes ie. /tables/ & /environments/
+
+/****************************/
+/*********** APIS ***********/
+/****************************/
+
+
+
+// here
+
+
+
+/***************************/
+/*********** END ***********/
+/***************************/
+
+
 
 app.listen(port, () => {
   console.log(`MDB is online @ http://localhost:${port}`);
