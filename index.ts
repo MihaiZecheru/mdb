@@ -693,7 +693,43 @@ app.get('/tables/:user_id/:env_name/:table_name/fields', async (req: any, res: a
 
 
 
-// here
+app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const id = req.params.id;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  try {
+    const userExists = (await db.query(`SELECT 1 FROM users WHERE id = $1`, [user_id])).rows.length;
+
+    if (!userExists) {
+      throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
+
+    if (!env_exists) {
+      throw new Error(`Environment '${env_name}' does not exist for user '${user_id}'`);
+    }
+    
+    /* skip checking for table existence; if the table doesn't exist an error will be returned, saving a query */
+
+    const table_id = tableId(user_id, env_name, table_name);
+
+    /* get _id field */
+    const response = await api_db.query(`SELECT * FROM ${table_id} WHERE _id = $1 LIMIT 1`, [id]);
+
+    if (!response.rows.length) {
+      throw new Error(`No entry with id '${id}' exists in table '${table_name}'`);
+    }
+
+    res.status(200).json(response.rows[0]);
+  } catch (err) {
+    res.status(400).json({ error: "ERROR: " + (err as Error).message });
+  }
+});
 
 
 
