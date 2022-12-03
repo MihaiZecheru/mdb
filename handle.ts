@@ -1,8 +1,9 @@
-import { errorMessage, fieldtype, isErrorMessage, user_id, field, typeIsVarchar, tableId, tablename } from "./types/basic";
+import { errorMessage, fieldtype, isErrorMessage, user_id, field, typeIsVarchar, tableId, tablename, user_auth } from "./types/basic";
 import { DatabaseUserEnvironments, DatabaseUsers, DatabaseUserTables } from "./database-functions";
 import { Environment } from "./types/environment";
 import { Table } from "./types/table";
 import { User } from "./types/user";
+import db from "./database-config/main-database-config";
 
 export const MAX_VARCHAR: number = 10485760;
 
@@ -502,5 +503,27 @@ export default class Handle {
     }
 
     return false;
+  }
+
+  /**
+   * Checks if the given user is authorized (checks for matchin API key)
+   * 
+   * @param res The express.js 'response' object
+   * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
+   */ 
+  static async authorization(given_auth: user_auth, user_id: string, res: any): Promise<boolean> {
+    try {
+      const user_auth = (await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id])).rows[0].auth;
+      
+      if (given_auth === user_auth) {
+        res.status(401).json({ error: `User is not authorized` });
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      res.status(400).json({ error: (err as Error).message });
+      return true;
+    }
   }
 }
