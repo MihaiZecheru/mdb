@@ -1,14 +1,16 @@
 import { DatabaseUsers, DatabaseUserEnvironments, DatabaseUserTables } from './database-functions';
-import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_name } from './types/basic';
+import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_name, user_auth } from './types/basic';
 import { Environment, IEnvironment } from './types/environment';
 import { User } from './types/user';
-import Handle from './handle';
 import { ITable, Table } from './types/table';
+import Handle from './handle';
+import uuid from './uuid';
 import db from './database-config/main-database-config';
 import api_db from './database-config/api-database-config';
 
 require('dotenv').config();
 const port = process.env['PORT'];
+const ADMIN_API_KEY = process.env['ADMIN_API_KEY'];
 
 const express = require('express');
 const app = express();
@@ -60,7 +62,9 @@ app.post('/users/', async (req: any, res: any) => {
     return Handle.missingFieldsError({ username, password, email }, "body", res);
   }
 
-  const user = await DatabaseUsers.createUser(username, password, email);
+  const auth: user_auth = uuid();
+
+  const user = await DatabaseUsers.createUser(username, password, email, auth);
   Handle.functionResult(res, user);
 });
 
@@ -127,7 +131,7 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
   if (Handle.userExists(user, res, user_id)) return;
   user = <User>user;
   
-  const new_user = await DatabaseUsers.updateUser({ id: user_id, username: username || user.username, password: password || user.password, email: email || user.email });
+  const new_user = await DatabaseUsers.updateUser({ id: user_id, username: username || user.username, password: password || user.password, email: email || user.email, auth: user.auth });
   Handle.functionResult(res, new_user);
 });
 

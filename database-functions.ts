@@ -1,4 +1,4 @@
-import { user_id, table_id, tablename, field, errorMessage, isErrorMessage, tabledescription, tableId, env_name } from './types/basic';
+import { user_id, table_id, tablename, field, errorMessage, isErrorMessage, tabledescription, tableId, env_name, user_auth } from './types/basic';
 import { User, IUser } from './types/user';
 import { Environment, IEnvironment } from './types/environment';
 import environmentRef from './environment-ref';
@@ -20,7 +20,7 @@ export class DatabaseUsers {
    * @param password The user's password
    * @param email The user's email
    */
-  static async createUser(username: string, password: string, email: string): Promise<User | errorMessage> {
+  static async createUser(username: string, password: string, email: string, auth: user_auth): Promise<User | errorMessage> {
     try {
       // add user to the users table
       await db.query('INSERT INTO users (username, password, email) VALUES ($1, $2, $3)', [username, password, email]);
@@ -35,7 +35,7 @@ export class DatabaseUsers {
       // add the user to the user_environment_tracker table (count and environments automatically take care of themselves)
       await db.query('INSERT INTO user_environment_tracker (user_id) VALUES ($1)', [user_id]);
       
-      return new User({ id: user_id, username, password, email });
+      return new User({ id: user_id, username, password, email, auth });
     } catch (err) {
       return "ERROR: " + (err as Error).message;
     }

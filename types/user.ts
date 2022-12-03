@@ -1,11 +1,12 @@
 import { DatabaseUsers } from '../database-functions';
-import { user_id } from './basic';
+import { user_auth, user_id } from './basic';
 
 export interface IUser {
   id: user_id;
   username: string;
   password: string;
   email: string;
+  auth: user_auth;
 }
 
 export class User implements IUser {
@@ -13,12 +14,14 @@ export class User implements IUser {
   public username: string;
   public password: string;
   public email: string;
+  public readonly auth: user_auth;
 
   public constructor(user: IUser) {
     this.id = user.id;
     this.username = user.username;
     this.password = user.password;
     this.email = user.email;
+    this.auth = user.auth;
   }
 
   /**
@@ -67,6 +70,7 @@ export class User implements IUser {
       username: this.username,
       password: this.password,
       email: this.email,
+      auth: this.auth
     };
   }
 
@@ -94,7 +98,7 @@ export class User implements IUser {
    * @param email The user's email
    * @returns An instance of the User class
    */
-   public static newUser(id: user_id, username: string, password: string, email: string): User {
-    return new User({ id, username, password, email });
+   public static newUser(id: user_id, username: string, password: string, email: string, auth: user_auth): User {
+    return new User({ id, username, password, email, auth });
   }
 }

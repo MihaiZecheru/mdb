@@ -4,6 +4,11 @@
 export type user_id = number;
 
 /**
+ * The user's authentication token, which takes the form of a 36 character string
+ */
+export type user_auth = string;
+
+/**
  * The local name of an environment, which is a string of 1 to 25 characters and is unique within the user's account.
  */
 export type env_name = string;
