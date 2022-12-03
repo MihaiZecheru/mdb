@@ -4,8 +4,10 @@ import { Environment } from "./types/environment";
 import { Table } from "./types/table";
 import { User } from "./types/user";
 import db from "./database-config/main-database-config";
+require('dotenv').config();
 
 export const MAX_VARCHAR: number = 10485760;
+const ADMIN_API_KEY = process.env['ADMIN_API_KEY'];
 
 export function isValidUrl(str: string) {
   const pattern = new RegExp(
@@ -506,17 +508,24 @@ export default class Handle {
   }
 
   /**
-   * Checks if the given user is authorized (checks for matchin API key)
+   * Checks if the given user exists and is authorized to make the request (checks for matchin API key)
    * 
    * @param res The express.js 'response' object
    * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */ 
-  static async authorization(given_auth: user_auth, user_id: string, res: any): Promise<boolean> {
+  static async authorization(given_auth: user_auth, user_id: string, res: any, admin: boolean = false): Promise<boolean> {
     try {
-      const user_auth = (await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id])).rows[0].auth;
+      const response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
       
-      if (given_auth === user_auth) {
-        res.status(401).json({ error: `User is not authorized` });
+      if (response.rows.length === 0) {
+        res.status(400).json({ error: `User with id '${user_id}' does not exist` });
+        return true;
+      }
+      
+      const user_auth = (admin) ? ADMIN_API_KEY : response.rows[0].auth;
+      
+      if (given_auth !== user_auth) {
+        res.status(401).json({ error: (admin) ? `User is not authorized (admin only)` : `User is not authorized` });
         return true;
       } else {
         return false;
@@ -525,5 +534,9 @@ export default class Handle {
       res.status(400).json({ error: (err as Error).message });
       return true;
     }
+  }
+
+  static async adminAuthorization(given_auth: user_auth, res: any): Promise<boolean> {
+    return await Handle.authorization(given_auth, '', res, true);
   }
 }
