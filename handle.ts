@@ -514,6 +514,11 @@ export default class Handle {
    * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */ 
   static async authorization(given_auth: user_auth, user_id: string, res: any, admin: boolean = false): Promise<boolean> {
+    if (!given_auth) {
+      res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+      return true;
+    }
+    
     try {
       const response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
       
