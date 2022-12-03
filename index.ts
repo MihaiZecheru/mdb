@@ -10,7 +10,6 @@ import api_db from './database-config/api-database-config';
 
 require('dotenv').config();
 const port = process.env['PORT'];
-const ADMIN_API_KEY = process.env['ADMIN_API_KEY'];
 
 const express = require('express');
 const app = express();
@@ -57,13 +56,15 @@ app.post('/users/', async (req: any, res: any) => {
   const username = req.body?.username;
   const password = req.body?.password;
   const email = req.body?.email;
+  const given_auth = req.headers.authorization;
   
   if (!username || !password || !email) {
     return Handle.missingFieldsError({ username, password, email }, "body", res);
   }
 
-  const auth: user_auth = uuid();
+  if (await Handle.adminAuthorization(given_auth, res)) return;
 
+  const auth: user_auth = uuid();
   const user = await DatabaseUsers.createUser(username, password, email, auth);
   Handle.functionResult(res, user);
 });
@@ -76,20 +77,21 @@ app.post('/users/', async (req: any, res: any) => {
  */
 app.get('/users/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const auth = req.headers.authorization;
+
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const user = await DatabaseUsers.getUser(user_id);
-
-  if (!user) {
-    return res.status(400).json({ error: `User with id '${user_id}' does not exist` });
-  }
-
   Handle.functionResult(res, <User | errorMessage>user);
 });
 
 app.get('/users/:user_id/username', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
+
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
 
   res.status(200).json((<User>user).username);
 });
@@ -98,12 +100,18 @@ app.get('/users/:user_id/password', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
 
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
+
   res.status(200).json((<User>user).password);
 });
 
 app.get('/users/:user_id/email', async (req: any, res: any) => {
   const user = await Handle.APIcall_GetUsersProperty(req, res);
   if (!user) return;
+
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
 
   res.status(200).json((<User>user).email);
 });
@@ -120,8 +128,10 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
   const username = req.body?.username;
   const password = req.body?.password;
   const email = req.body?.email;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   if (!username && !password && !email) {
     return res.status(400).json({ error: `No fields were given to update` });
@@ -143,7 +153,10 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
  */
 app.delete('/users/:user_id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const auth = req.headers.authorization;
+
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -202,8 +215,10 @@ app.delete('/users/:user_id', async (req: any, res: any) => {
  */
  app.get('/users/:user_id/tables/count', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -225,8 +240,10 @@ app.delete('/users/:user_id', async (req: any, res: any) => {
  */
  app.get('/users/:user_id/environments', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -262,8 +279,10 @@ app.delete('/users/:user_id', async (req: any, res: any) => {
  */
  app.get('/users/:user_id/environments/count', async (req: any, res: any) => {
   const user_id = req.params.user_id;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -295,6 +314,7 @@ app.post('/environments/', async (req: any, res: any) => {
   const user_id = req.query.user_id;
   const environment_name = req.body.name;
   const environment_description = req.body.description;
+  const auth = req.headers.authorization;
 
   if (environment_name.length > 25) {
     return res.status(400).json({ error: `Table name '${environment_name}' is too long (max length is 31 characters). Given: ${environment_name.length}` });
@@ -305,6 +325,7 @@ app.post('/environments/', async (req: any, res: any) => {
   }
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   if (!environment_name || !environment_description) {
     return Handle.missingFieldsError({ name: environment_name, description: environment_description }, "body", res);
@@ -329,8 +350,10 @@ app.post('/environments/', async (req: any, res: any) => {
 app.delete('/environments/:env_name/', async (req: any, res: any) => {
   const user_id = req.query.user_id;
   const environment_name = req.params.env_name;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   if (!user_id) {
     return Handle.missingFieldsError({ user_id }, "query", res);
@@ -366,8 +389,10 @@ app.patch('/environments/:user_id/:old_name', async (req: any, res: any) => {
   const old_environment_name = req.params.old_name;
   const new_environment_name = req.body.new_name;
   const environment_description = req.body.description;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   if (!new_environment_name && !environment_description) {
     return res.status(400).json({ error: `No fields were given to update (note: the new name must be passed in as 'new_name', not 'name')` });
@@ -403,6 +428,7 @@ app.patch('/environments/:user_id/:old_name', async (req: any, res: any) => {
 app.get('/environments/:env_name', async (req: any, res: any) => {
   const environment_name = req.params.env_name;
   const user_id = req.query.user_id;
+  const auth = req.headers.authorization;
 
   if (!isNaN(environment_name)) {
     return res.status(400).json({ error: `Environment name '${environment_name}' is invalid (note: this endpoint takes the user_id as a query param, not as a part of the path)` });
@@ -413,6 +439,7 @@ app.get('/environments/:env_name', async (req: any, res: any) => {
   }
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -436,6 +463,9 @@ app.get('/environments/:env_name/description', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
 
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
+
   return res.status(200).json((<Environment>result).description);
 });
 
@@ -448,6 +478,9 @@ app.get('/environments/:env_name/description', async (req: any, res: any) => {
 app.get('/environments/:env_name/tables', async (req: any, res: any) => {
   const result = await Handle.APIcall_GetEnvironmentProperty(req, res);
   if (!result) return; // the func has already sent a response
+
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
 
   return res.status(200).json((<Environment>result).tables);
 });
@@ -472,6 +505,7 @@ app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
   const env_name = req.params.env_name;
   const table_name = req.body.table_name;
   const table_description = req.body.table_description;
+  const auth = req.headers.authorization;
   let table_fields = req.body.fields;
 
   if (table_name === '_id') {
@@ -480,6 +514,7 @@ app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
 
   if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   if (!table_name || !table_description || !table_fields) {
     return Handle.missingFieldsError({ table_name, table_description, table_fields }, "body", res);
@@ -505,8 +540,10 @@ app.delete('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) 
   const user_id = req.params.user_id;
   const env_name = req.params.env_name;
   const table_name = req.params.table_name;
+  const auth = req.headers.authorization;
   
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -532,6 +569,7 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   const table_name = req.params.table_name;
   const new_table_name = req.body.table_name;
   const table_description = req.body.table_description;
+  const auth = req.headers.authorization;
   
   // get fields to add, remove, and rename
   let fields_to_add: Array<field> = req.body.add_fields;
@@ -540,6 +578,7 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   
   if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -617,8 +656,10 @@ app.get('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) => 
   const user_id = req.params.user_id;
   const env_name = req.params.env_name;
   const table_name = req.params.table_name;
+  const auth = req.headers.authorization;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  if (await Handle.authorization(auth, user_id, res)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -637,6 +678,9 @@ app.get('/tables/:user_id/:env_name/:table_name/id', async (req: any, res: any) 
   const table = await Handle.APIcall_GetTablesProperty(req, res);
   if (!table) return;
 
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
+
   res.status(200).json((<Table>table).table_id);
 });
 
@@ -646,6 +690,9 @@ app.get('/tables/:user_id/:env_name/:table_name/id', async (req: any, res: any) 
 app.get('/tables/:user_id/:env_name/:table_name/name', async (req: any, res: any) => {
   const table = await Handle.APIcall_GetTablesProperty(req, res);
   if (!table) return;
+
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
 
   res.status(200).json((<Table>table).tablename);
 });
@@ -657,6 +704,9 @@ app.get('/tables/:user_id/:env_name/:table_name/env_name', async (req: any, res:
   const table = await Handle.APIcall_GetTablesProperty(req, res);
   if (!table) return;
 
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
+
   res.status(200).json((<Table>table).environment_name);
 });
 
@@ -667,6 +717,9 @@ app.get('/tables/:user_id/:env_name/:table_name/description', async (req: any, r
   const table = await Handle.APIcall_GetTablesProperty(req, res);
   if (!table) return;
 
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
+
   res.status(200).json((<Table>table).description);
 });
 
@@ -676,6 +729,9 @@ app.get('/tables/:user_id/:env_name/:table_name/description', async (req: any, r
 app.get('/tables/:user_id/:env_name/:table_name/fields', async (req: any, res: any) => {
   const table = await Handle.APIcall_GetTablesProperty(req, res);
   if (!table) return;
+
+  const auth = req.headers.authorization;
+  if (await Handle.authorization(auth, req.params.user_id, res)) return;
 
   res.status(200).json((<Table>table).fields);
 });
@@ -701,15 +757,25 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
   const user_id = req.params.user_id;
   const env_name = req.params.env_name;
   const table_name = req.params.table_name;
+  const auth = req.headers.authorization;
   const id = req.params.id;
 
   if (Handle.invalidUserId(user_id, res)) return;
+  
+  if (!auth) {
+    res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+  }
 
   try {
-    const userExists = (await db.query(`SELECT 1 FROM users WHERE id = $1`, [user_id])).rows.length;
+    const auth_response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
 
-    if (!userExists) {
+    if (!auth_response.rows.length) {
       throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const user_auth = auth_response.rows[0].auth;
+    if (user_auth !== auth) {
+      throw new Error(`User is not authorized`);
     }
 
     const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
