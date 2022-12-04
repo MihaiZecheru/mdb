@@ -544,4 +544,15 @@ export default class Handle {
   static async adminAuthorization(given_auth: user_auth, res: any): Promise<boolean> {
     return await Handle.authorization(given_auth, '', res, true);
   }
+
+  static spacesInParams(res: any, ...params: Array<string>): boolean {
+    for (let i = 0; i < params.length; i++) {
+      if (params[i].includes(' ')) {
+        res.status(400).json({ error: `Parameter '${params[i]}' cannot contain spaces` });
+        return true;
+      }
+    }
+
+    return false;
+  }
 }
