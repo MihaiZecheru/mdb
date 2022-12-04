@@ -784,7 +784,7 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
   if (Handle.invalidUserId(user_id, res)) return;
   
   if (!auth) {
-    res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+    return res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
   }
 
   try {
@@ -816,9 +816,9 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
       throw new Error(`No entry with id '${id}' exists in table '${table_name}'`);
     }
 
-    res.status(200).json(response.rows[0]);
+    return res.status(200).json(response.rows[0]);
   } catch (err) {
-    res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
   }
 });
 
