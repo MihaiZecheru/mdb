@@ -527,7 +527,7 @@ export default class Handle {
    * @param res The express.js 'response' object
    * @returns A boolean value which indicates whether an error message was sent via the 'res' object. If this value is true, the API call should be terminated as it has been resolved
    */ 
-  static async authorization(given_auth: user_auth, user_id: string, res: any, admin: boolean = false): Promise<boolean> {
+  static async authorization(given_auth: user_auth, user_id: user_id, res: any, admin: boolean = false): Promise<boolean> {
     if (!given_auth) {
       res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
       return true;
@@ -555,8 +555,8 @@ export default class Handle {
     }
   }
 
-  static async adminAuthorization(given_auth: user_auth, res: any): Promise<boolean> {
-    return await Handle.authorization(given_auth, '', res, true);
+  static adminAuthorized(given_auth: user_auth, res: any): boolean {
+    return given_auth === ADMIN_API_KEY;
   }
 
   static spacesInParams(res: any, ...params: Array<string>): boolean {

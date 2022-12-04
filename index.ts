@@ -61,13 +61,12 @@ app.post('/users/', async (req: any, res: any) => {
   if (!username || !password || !email) {
     return Handle.missingFieldsError({ username, password, email }, "body", res);
   }
-
+  
   if (Handle.spacesInParams(res, username, email)) return;
-
-  if (await Handle.adminAuthorization(given_auth, res)) return;
-
+  if (!Handle.adminAuthorized(given_auth, res)) return;
+  
   // validate email
-  if (isValidEmail(email)) {
+  if (!isValidEmail(email)) {
     return res.status(400).json({ error: "Invalid email" });
   }
 
@@ -143,6 +142,11 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
 
   if (!username && !password && !email) {
     return res.status(400).json({ error: `No fields were given to update` });
+  }
+  
+  // validate email
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: "Invalid email" });
   }
 
   if (Handle.spacesInParams(res, username, email)) return;
