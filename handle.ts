@@ -436,7 +436,16 @@ export default class Handle {
   }
 
   static formatTableFieldsAndValidation(table_fields: any, res: any): [boolean, any] {
+    // array[0] = boolean, array[1] = string
+    let field_contains_spaces: Array<any> = [false, ""];
+
     const formatted_table_fields: Array<field> = Object.keys(table_fields).map((key) => {
+      // check if name has spaces
+      if (key.includes(' ')) {
+        field_contains_spaces[0] = true;
+        field_contains_spaces[1] = key;
+      }
+
       if (typeof table_fields[key] === 'string') {
         // no dict with optional values was passed
         return {
@@ -489,6 +498,11 @@ export default class Handle {
         return res.status(400).json({ error: `Field '${field.name}' has 'auto_date' enabled but was given a 'default' and/or a 'setNotNull' value. When enabling 'auto_date', niether a 'default' or a 'setNotNull' value should be passed` });
       }
     };
+
+    if (field_contains_spaces[0]) {
+      res.status(400).json({ error: `Field name '${field_contains_spaces[1]}' cannot contain spaces` });
+      return [true, null];
+    }
 
     return [false, formatted_table_fields]; // tables are valid; no error
   }
