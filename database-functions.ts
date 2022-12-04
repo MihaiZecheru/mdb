@@ -22,7 +22,7 @@ export class DatabaseUsers {
   static async createUser(username: string, password: string, email: string, auth: user_auth): Promise<User | errorMessage> {
     try {
       // add user to the users table
-      await db.query('INSERT INTO users (username, password, email) VALUES ($1, $2, $3)', [username, password, email]);
+      await db.query('INSERT INTO users (username, password, email, auth) VALUES ($1, $2, $3, $4)', [username, password, email, auth]);
       
       // get the user's id
       const res = await db.query('SELECT id FROM users WHERE (username = $1 AND password = $2 AND email = $3) ORDER BY id DESC LIMIT 1', [username, password, email]);
