@@ -3,7 +3,7 @@ import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_
 import { Environment, IEnvironment } from './types/environment';
 import { User } from './types/user';
 import { ITable, Table } from './types/table';
-import Handle from './handle';
+import Handle, { isValidEmail } from './handle';
 import uuid from './uuid';
 import db from './database-config/main-database-config';
 import api_db from './database-config/api-database-config';
@@ -62,7 +62,14 @@ app.post('/users/', async (req: any, res: any) => {
     return Handle.missingFieldsError({ username, password, email }, "body", res);
   }
 
+  if (Handle.spacesInParams(res, username, email)) return;
+
   if (await Handle.adminAuthorization(given_auth, res)) return;
+
+  // validate email
+  if (isValidEmail(email)) {
+    return res.status(400).json({ error: "Invalid email" });
+  }
 
   const auth: user_auth = uuid();
   const user = await DatabaseUsers.createUser(username, password, email, auth);
@@ -136,6 +143,8 @@ app.patch('/users/:user_id', async (req: any, res: any) => {
   if (!username && !password && !email) {
     return res.status(400).json({ error: `No fields were given to update` });
   }
+
+  if (Handle.spacesInParams(res, username, email)) return;
 
   let user = await DatabaseUsers.getUser(user_id);
   if (Handle.userExists(user, res, user_id)) return;
@@ -324,6 +333,8 @@ app.post('/environments/', async (req: any, res: any) => {
     return Handle.missingFieldsError({ user_id }, "query", res);
   }
 
+  if (Handle.spacesInParams(res, environment_name)) return;
+
   if (Handle.invalidUserId(user_id, res)) return;
   if (await Handle.authorization(auth, user_id, res)) return;
 
@@ -399,6 +410,8 @@ app.patch('/environments/:user_id/:old_name', async (req: any, res: any) => {
   } else if (!old_environment_name) {
     return Handle.missingFieldsError({ old_name: old_environment_name }, "body", res);
   }
+
+  if (Handle.spacesInParams(res, new_environment_name)) return;
 
   const userExists = await DatabaseUsers.userExists(user_id);
   if (Handle.userExists(userExists, res, user_id)) return;
@@ -515,6 +528,7 @@ app.post('/tables/:user_id/:env_name', async (req: any, res: any) => {
   if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
   if (await Handle.authorization(auth, user_id, res)) return;
+  if (Handle.spacesInParams(res, env_name, table_name)) return;
 
   if (!table_name || !table_description || !table_fields) {
     return Handle.missingFieldsError({ table_name, table_description, table_fields }, "body", res);
@@ -576,8 +590,15 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   let fields_to_remove: Array<field> = req.body.remove_fields;
   let fields_to_rename: { [old_name: string]: string } = req.body.rename_fields;
   
+  if (!new_table_name) {
+    return Handle.missingFieldsError({ table_name: new_table_name}, "body", res);
+  }
+
+  if (Handle.spacesInParams(res, new_table_name)) return;
+
   if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
+  if (Handle.spacesInParams(res, new_table_name)) return;
   if (await Handle.authorization(auth, user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
@@ -644,7 +665,6 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
     }
   }
   
-  console.log(fields_to_rename_formatted)
   const table = await DatabaseUserTables.updateTable(table_id, old_table, new_table, (fields_to_add) ? fields_to_add : [], (fields_to_remove) ? fields_to_remove : [], (fields_to_rename) ? fields_to_rename_formatted : []);
   Handle.functionResult(res, table);
 });
