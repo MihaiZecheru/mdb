@@ -74,12 +74,6 @@ app.post('/users/', async (req: any, res: any) => {
   const auth: user_auth = uuid();
   let user = await DatabaseUsers.createUser(username, password, email, auth);
 
-  // prevent a real user from getting the same ID as the user from the documentation examples
-  if (!isErrorMessage(user) && (<User>user).id == 712) {
-    await db.query(`UPDATE users SET id = 713 WHERE id = 712`);
-    user = new User({ id: 713, username: (<User>user).username, password: (<User>user).password, email: (<User>user).email, auth: (<User>user).auth });
-  }
-
   Handle.functionResult(res, user);
 });
 
