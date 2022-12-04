@@ -1,7 +1,6 @@
 import { user_id, table_id, tablename, field, errorMessage, isErrorMessage, tabledescription, tableId, env_name, user_auth } from './types/basic';
 import { User, IUser } from './types/user';
 import { Environment, IEnvironment } from './types/environment';
-import environmentRef from './environment-ref';
 
 import db from './database-config/main-database-config';
 import api_db from './database-config/api-database-config';
