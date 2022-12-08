@@ -74,7 +74,15 @@ export class Environment implements IEnvironment {
    * @returns The Environment object
    */
   public static parseEnvironment(json: string): Environment {
-    return new Environment(JSON.parse(json));
+    const parsedJson = JSON.parse(json);
+    
+    try {
+      parsedJson.tables = JSON.parse(parsedJson.tables);
+    } catch (err) {
+      // Do nothing
+    }
+
+    return new Environment(parsedJson);
   }
 
   /**
