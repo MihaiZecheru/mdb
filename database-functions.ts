@@ -645,14 +645,15 @@ export class DatabaseUserTables {
       // add fields
       if (fields_to_add.length) {
         await api_db.query(`ALTER TABLE ${table_id} ADD COLUMN ${this.generateCustomFields(fields_to_add)}`);
+        new_table.fields.push(...fields_to_add);
+        await db.query(`UPDATE user_tables SET fields = $1 WHERE table_id = $2`, [JSON.stringify(new_table.fields), table_id]);
       }
 
       // rename fields
       for (let i = 0; i < fields_to_rename.length; i++) {
-        // await api_db.query(`ALTER TABLE ${table_id} RENAME COLUMN ${fields_to_rename[i].old_name} TO ${fields_to_rename[i].new_name}`);
+        await api_db.query(`ALTER TABLE ${table_id} RENAME COLUMN ${fields_to_rename[i].old_name} TO ${fields_to_rename[i].new_name}`);
 
         let old_fields = old_table.fields;
-        console.log(old_fields);
         old_fields.find((field) => field.name === fields_to_rename[i].old_name)!.name = fields_to_rename[i].new_name;
 
         await db.query(`UPDATE user_tables SET fields = $1 WHERE table_id = $2`, [JSON.stringify(old_fields), table_id]);
