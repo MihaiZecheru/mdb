@@ -511,7 +511,7 @@ export class DatabaseUserTables {
           break;
 
         case "emoji":
-          sql_type = "58"; // max emoji size is 58 chars; "U+1F469 U+200D U+2764 U+FE0F U+200D U+1F48B U+200D U+1F468"
+          sql_type = "VARCHAR(58)"; // max emoji size is 58 chars; "U+1F469 U+200D U+2764 U+FE0F U+200D U+1F48B U+200D U+1F468"
           break;
 
         // string_${string}
