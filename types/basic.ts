@@ -1,3 +1,5 @@
+import db from "../database-config/main-database-config";
+
 /**
  * The user's id in the database, which is an integer ranging from 0 to 2147483647.
  */
@@ -102,4 +104,15 @@ export function typeIsVarchar(s: string): boolean {
  */
 export function tableId(user_id: user_id, env_name: string, tablename: tablename): table_id {
   return `_${user_id}_${env_name}_${tablename}`;
+}
+
+export async function getFieldTypes(table_id: table_id): Promise<{ [name: string]: fieldtype }> {
+  const fields = JSON.parse((await db.query(`SELECT fields FROM user_tables WHERE table_id = $1`, [table_id])).rows[0].fields);
+
+  const fieldTypes: { [name: string]: fieldtype } = {};
+  for (const field of fields) {
+    fieldTypes[field.name] = field.type;
+  }
+
+  return fieldTypes;
 }
