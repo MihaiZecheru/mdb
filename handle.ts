@@ -9,6 +9,14 @@ require('dotenv').config();
 export const MAX_VARCHAR: number = 10485760;
 const ADMIN_API_KEY = process.env['ADMIN_API_KEY'];
 
+export function isAlpha(str: string): boolean {
+  return (/^[a-zA-Z_]+$/i).test(str);
+}
+
+export function isAlphanumeric(str: string): boolean {
+  return (/^[A-Za-z0-9_]+$/i).test(str);
+}
+
 export function isValidUrl(str: string) {
   const pattern = new RegExp(
     '^([a-zA-Z]+:\\/\\/)?' + // protocol
@@ -510,6 +518,16 @@ export default class Handle {
   static invalidNameAndDescLengths(table_name: string, table_description: string, res: any): boolean {
     if (table_name && table_name.length > 31) {
       res.status(400).json({ error: `Table name '${table_name}' is too long (max length is 31 characters). Given: ${table_name.length}` });
+      return true;
+    }
+
+    if (table_name && !isAlpha(table_name[0])) {
+      res.status(400).json({ error: `Table name '${table_name}' must start with a letter or underscore` });
+      return true;
+    }
+
+    if (table_name && !isAlphanumeric(table_name)) {
+      res.status(400).json({ error: `Table name '${table_name}' can only contain letters, numbers, and underscores` });
       return true;
     }
   
