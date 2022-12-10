@@ -40,9 +40,7 @@ export function isValidPhone(str: string) {
 }
 
 export function isValidEmoji(str: string) {
-  // U+1F441 U+FE0F U+200D U+1F5E8 U+FE0F or :smiley_cat:
-  str += " ";
-  return (new RegExp(/^(U\+([A-Z0-9]){4,5}\s){1,8}$/g).test(str)) || (new RegExp(/^:\w+:$/g).test(str));
+  return new RegExp(/^:\w+:$/g).test(str);
 }
 
 export default class Handle {

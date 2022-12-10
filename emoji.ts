@@ -6,6 +6,6 @@ const emojiMap: { [name: string]: string } = {
 };
 
 export function getEmoji(name: string): string {
-  if (name[0] === ':') name = name.substring(1, name.length - 1);
+  name = name.substring(1, name.length - 1);
   return emojiMap[name];
 }
