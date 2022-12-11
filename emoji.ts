@@ -1674,5 +1674,3 @@ const emojiMap: { [name: string]: string } = {
   "scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
   "wales": "🏴󠁧󠁢󠁷󠁬󠁳󠁿"
 };
-
-console.log(getEmoji(":Poland:"))
