@@ -1,5 +1,5 @@
 import { DatabaseUsers, DatabaseUserEnvironments, DatabaseUserTables } from './database-functions';
-import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_name, user_auth } from './types/basic';
+import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_name, user_auth, getFieldTypes } from './types/basic';
 import { Environment, IEnvironment } from './types/environment';
 import { User } from './types/user';
 import { ITable, Table } from './types/table';
@@ -7,6 +7,7 @@ import Handle, { isValidEmail } from './handle';
 import uuid from './uuid';
 import db from './database-config/main-database-config';
 import api_db from './database-config/api-database-config';
+import { getEmoji } from './emoji';
 
 require('dotenv').config();
 const port = process.env['PORT'];
@@ -21,12 +22,7 @@ app.use(express.json());
  * Sends: the help message / link to the docs
  */
 app.get('/', async (req: any, res: any) => {
-  // res.status(200).send('Hello World!');
-
-  // const before = Date.now();
-  // res.send(await DatabaseUsers.createUser("tester", "tester", "tester"));
-  // const after = Date.now();
-  // console.log(`Time: ${after - before}ms`);
+  res.status(200).send('Hello World!');
 });
 
 /**
@@ -595,15 +591,9 @@ app.patch('/tables/:user_id/:env_name/:table_name', async (req: any, res: any) =
   let fields_to_remove: Array<field> = req.body.remove_fields;
   let fields_to_rename: { [old_name: string]: string } = req.body.rename_fields;
   
-  if (!new_table_name) {
-    return Handle.missingFieldsError({ table_name: new_table_name}, "body", res);
-  }
-
-  if (Handle.spacesInParams(res, new_table_name)) return;
-
+  if (new_table_name && Handle.spacesInParams(res, new_table_name)) return;
   if (Handle.invalidNameAndDescLengths(table_name, table_description, res)) return;
   if (Handle.invalidUserId(user_id, res)) return;
-  if (Handle.spacesInParams(res, new_table_name)) return;
   if (await Handle.authorization(auth, user_id, res)) return;
   
   const userExists = await DatabaseUsers.userExists(user_id);
@@ -820,7 +810,20 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
       throw new Error(`No entry with id '${id}' exists in table '${table_name}'`);
     }
 
-    return res.status(200).json(response.rows[0]);
+    const entry = response.rows[0];
+    const field_types = await getFieldTypes(table_id);
+
+    for (const field in entry) {
+      if (field_types[field] === 'array') {
+        entry[field] = JSON.parse(entry[field]);
+      } else if (field_types[field] === 'json') {
+        entry[field] = JSON.parse(entry[field]);
+      } else if (field_types[field] === 'emoji' && entry[field][0] === ':') {
+        entry[field] = getEmoji(entry[field]);
+      }
+    }
+
+    return res.status(200).json(entry);
   } catch (err) {
     return res.status(400).json({ error: "ERROR: " + (err as Error).message });
   }
