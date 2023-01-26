@@ -3,6 +3,11 @@ export function getEmoji(name: string): string {
   return emojiMap[name];
 }
 
+export function isValidEmoji(name: string) {
+  name = name.substring(1, name.length - 1).toLowerCase();
+  return !!emojiMap[name];
+}
+
 const emojiMap: { [name: string]: string } = {
   "grinning_face": "😀",
   "grinning_face_with_big_eyes": "😃",

@@ -1,8 +1,9 @@
-import { errorMessage, fieldtype, isErrorMessage, user_id, field, typeIsVarchar, tableId, tablename, user_auth } from "./types/basic";
+import { errorMessage, fieldtype, isErrorMessage, user_id, field, typeIsVarchar, tableId, user_auth } from "./types/basic";
 import { DatabaseUserEnvironments, DatabaseUsers, DatabaseUserTables } from "./database-functions";
 import { Environment } from "./types/environment";
 import { Table } from "./types/table";
 import { User } from "./types/user";
+import { isValidEmoji } from "./emoji";
 import db from "./database-config/main-database-config";
 require('dotenv').config();
 
@@ -37,10 +38,6 @@ export function isValidEmail(str: string) {
 
 export function isValidPhone(str: string) {
   return new RegExp(/^\d{3}[-\.]\d{3}[-\.]\d{4}$/im).test(str);
-}
-
-export function isValidEmoji(str: string) {
-  return new RegExp(/^:\w+:$/g).test(str);
 }
 
 export default class Handle {
