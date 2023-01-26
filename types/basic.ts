@@ -47,6 +47,7 @@ export type tabledescription = string;
  * - float: a floating point number between -2147483648 to +2147483647 (referenced as 'real' in the database)
  * - boolean: a boolean value (true or false)
  * - date: a date in the format of YYYY-MM-DD
+ * - time: a time in the format of HH:MM:SS
  * - datetime: a datetime in the format of YYYY-MM-DD HH:MM:SS
  * - url: a URL of up to 501 characters
  * - email: an email address of up to 320 characters
@@ -55,7 +56,7 @@ export type tabledescription = string;
  * - json: a JSON object
  * - emoji: an emoji code, for example, :smile:, which is a string of up to 58 characters
  */
-export type fieldtype = "string" | "string_max" | "string_nolim" | `string_${number}` | "integer" | "float" | "boolean" | "date" | "datetime" | "url" | "email" | "phone" | "array" | "json" | "emoji";
+export type fieldtype = "string" | "string_max" | "string_nolim" | `string_${number}` | "integer" | "float" | "boolean" | "date" | "time" | "datetime" | "url" | "email" | "phone" | "array" | "json" | "emoji";
 
 /**
  * A table field, which is an object with both a name and a type
