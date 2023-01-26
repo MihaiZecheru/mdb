@@ -55,7 +55,7 @@ export type tabledescription = string;
  * - json: a JSON object
  * - emoji: an emoji code, for example, :smile:, which is a string of up to 58 characters
  */
-export type fieldtype = "string" | "string_max" | "string_nolim" | `string_${string}` | "integer" | "float" | "boolean" | "date" | "datetime" | "url" | "email" | "phone" | "array" | "json" | "emoji";
+export type fieldtype = "string" | "string_max" | "string_nolim" | `string_${number}` | "integer" | "float" | "boolean" | "date" | "datetime" | "url" | "email" | "phone" | "array" | "json" | "emoji";
 
 /**
  * A table field, which is an object with both a name and a type
