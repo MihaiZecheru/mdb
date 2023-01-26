@@ -3,11 +3,11 @@ import { errorMessage, isErrorMessage, field, tableId, table_id, tablename, env_
 import { Environment, IEnvironment } from './types/environment';
 import { User } from './types/user';
 import { ITable, Table } from './types/table';
-import Handle, { isValidEmail } from './handle';
+import Handle, { isValidEmail, isValidPhone, isValidUrl } from './handle';
 import uuid from './uuid';
 import db from './database-config/main-database-config';
 import api_db from './database-config/api-database-config';
-import { getEmoji } from './emoji';
+import { getEmoji, isValidEmoji } from './emoji';
 
 require('dotenv').config();
 const port = process.env['PORT'];
@@ -824,6 +824,119 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
     }
 
     return res.status(200).json(entry);
+  } catch (err) {
+    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+  }
+});
+
+app.post('/api/:user_id/:env_name/:table_name', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const auth = req.headers.authorization;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  if (!auth) {
+    return res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+  }
+
+  try {
+    const auth_response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
+
+    if (!auth_response.rows.length) {
+      throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const user_auth = auth_response.rows[0].auth;
+    if (user_auth !== auth) {
+      throw new Error(`User is not authorized`);
+    }
+
+    const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
+
+    if (!env_exists) {
+      throw new Error(`Environment '${env_name}' does not exist for user '${user_id}'`);
+    }
+    
+    /* skip checking for table existence; if the table doesn't exist an error will be returned, saving a query */
+
+    const table_id = tableId(user_id, env_name, table_name);
+
+    // get fields
+    const fields_raw = JSON.parse((await db.query(`SELECT fields FROM user_tables WHERE table_id = $1`, [table_id])).rows[0].fields);
+    const given_fieldnames = Object.keys(req.body);
+    
+    const fields = fields_raw.reduce((acc: any, field: any) => {
+      acc[field.name] = field;
+      return acc;
+    }, {});
+
+    // check for missing fields
+    for (let i = 0; i < fields_raw.length; i++) {
+      const field = fields_raw[i];
+      console.log(field);
+      if ((field.setNotNull && !field.auto_date) && !given_fieldnames.includes(field.name)) {
+        throw new Error(`Field \"${field.name}\" is required`);
+      }
+    }
+
+    // validate fields
+    for (let i = 0; i < given_fieldnames.length; i++) {
+      const fieldname = given_fieldnames[i];
+      const field = fields[fieldname];
+
+      if (!field) {
+        throw new Error(`Field '${fieldname}' does not exist in table '${table_name}'`);
+      }
+
+      if (field.type.includes('string') && typeof req.body[fieldname] !== 'string') {
+        throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
+      } else if (field.type === 'integer' && (typeof req.body[fieldname] !== 'number' || !Number.isInteger(req.body[fieldname]))) {
+        throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
+      } else if (field.type === 'float' && (typeof req.body[fieldname] !== 'number' || Number.isInteger(req.body[fieldname]))) {
+        throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
+      } else if (field.type === 'boolean' && typeof req.body[fieldname] !== 'boolean') {
+        throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
+      } else if (field.type === 'date' && !req.body[fieldname].match(/^\d{4}-\d{2}-\d{2}$/)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
+      } else if (field.type === 'time' && !req.body[fieldname].match(/^\d{2}:\d{2}:\d{2}$/)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
+      } else if (field.type === 'datetime' && !req.body[fieldname].test(/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
+      } else if (field.type === 'url' && !isValidUrl(req.body[fieldname])) {
+        throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
+      } else if (field.type === 'email' && !isValidEmail(req.body[fieldname])) {
+        throw new Error(`Field \"${field.name}\" must be of type \"email\"`);
+      } else if (field.type === 'phone' && !isValidPhone(req.body[fieldname])) {
+        throw new Error(`Field \"${field.name}\" must be of type \"phone\"`);
+      } else if (field.type === 'array' && !Array.isArray(req.body[fieldname])) {
+        throw new Error(`Field \"${field.name}\" must be of type \"array\"`);
+      } else if (field.type === 'json' && typeof req.body[fieldname] !== 'object') {
+        throw new Error(`Field \"${field.name}\" must be of type \"json\"`);
+      } else if (field.type === 'emoji' && !isValidEmoji(req.body[fieldname])) {
+        throw new Error(`Field \"${field.name}\" must be of type \"emoji\"`);
+      }
+
+      if (field.type === 'array' || field.type === 'json') {
+        req.body[fieldname] = JSON.stringify(req.body[fieldname]);
+      }
+    }
+
+    // create object to insert
+    let entry: { [ key: string ]: unknown } = {};
+
+    for (let i = 0; i < fields_raw.length; i++) {
+      const field = fields_raw[i];
+      if (req.body[field.name]) {
+        entry[field.name] = req.body[field.name];
+      } else {
+        if (field.defaultValue && field.type !== 'datetime' && !field.auto_date)
+          entry[field.name] = field.defaultValue;
+      }
+    }
+
+    return res.status(200).json(...(await api_db.query(`INSERT INTO ${table_id} (${Object.keys(entry).join(', ')}) VALUES (${Object.keys(entry).map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`, Object.values(entry))).rows);
   } catch (err) {
     return res.status(400).json({ error: "ERROR: " + (err as Error).message });
   }
