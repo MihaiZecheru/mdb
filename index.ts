@@ -768,12 +768,72 @@ app.get('/tables/:user_id/:env_name/:table_name/fields', async (req: any, res: a
 
 
 
+app.get('/api/:user_id/:env_name/:table_name/all', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const auth = req.headers.authorization; 
+  const query = req.query;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+  
+  if (!auth) {
+    return res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+  }
+
+  try {
+    const auth_response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
+
+    if (!auth_response.rows.length) {
+      throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const user_auth = auth_response.rows[0].auth;
+    if (user_auth !== auth) {
+      throw new Error(`User is not authorized`);
+    }
+
+    const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
+
+    if (!env_exists) {
+      throw new Error(`Environment '${env_name}' does not exist for user '${user_id}'`);
+    }
+    
+    /* skip checking for table existence; if the table doesn't exist an error will be returned, saving a query */
+
+    const table_id = tableId(user_id, env_name, table_name);
+    const response = await api_db.query(`SELECT * FROM ${table_id}`);
+    const field_types = await getFieldTypes(table_id);
+
+    for (let i = 0; i < response.rows.length; i++) {
+      const entry = response.rows[i];
+
+      for (const field in entry) {
+        if (field_types[field] === 'array') {
+          entry[field] = JSON.parse(entry[field]);
+        } else if (field_types[field] === 'json') {
+          entry[field] = JSON.parse(entry[field]);
+        } else if (field_types[field] === 'emoji' && entry[field][0] === ':') {
+          entry[field] = getEmoji(entry[field]);
+        }
+      }
+    }
+
+    res.status(200).json(response.rows);
+  } catch (err) {
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg))
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
+  }
+});
+
 app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) => {
   const user_id = req.params.user_id;
   const env_name = req.params.env_name;
   const table_name = req.params.table_name;
-  const auth = req.headers.authorization;
-  const id = req.params.id;
+  const auth = req.headers.authorization; 
+  const entry_id = req.params.id;
 
   if (Handle.invalidUserId(user_id, res)) return;
   
@@ -803,11 +863,11 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
 
     const table_id = tableId(user_id, env_name, table_name);
 
-    /* get entry */
-    const response = await api_db.query(`SELECT * FROM ${table_id} WHERE _id = $1 LIMIT 1`, [id]);
+    /* get one entry */
+    const response = await api_db.query(`SELECT * FROM ${table_id} WHERE _id = $1 LIMIT 1`, [entry_id]);
 
     if (!response.rows.length) {
-      throw new Error(`No entry with id '${id}' exists in table '${table_name}'`);
+      throw new Error(`No entry with id '${entry_id}' exists in table '${table_name}'`);
     }
 
     const entry = response.rows[0];
@@ -827,6 +887,61 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
   } catch (err) {
     let msg = (err as Error).message;
     if (/relation \"(.*?)\" does not exist/.test(msg))
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
+  }
+});
+
+/* PATH FOR FILTER QUERIES */
+app.get('/api/:user_id/:env_name/:table_name/', async (req: any, res: any) => {
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const auth = req.headers.authorization;
+  const field_name = req.params.field_name;
+  const queries = req.query;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+  
+  if (!auth) {
+    return res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+  }
+
+  try {
+    const auth_response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
+
+    if (!auth_response.rows.length) {
+      throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const user_auth = auth_response.rows[0].auth;
+    if (user_auth !== auth) {
+      throw new Error(`User is not authorized`);
+    }
+
+    const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
+
+    if (!env_exists) {
+      throw new Error(`Environment '${env_name}' does not exist for user '${user_id}'`);
+    }
+    
+    /* skip checking for table existence; if the table doesn't exist an error will be returned, saving a query */
+
+    const table_id = tableId(user_id, env_name, table_name);
+
+    /* check for filter queries */
+
+    if (!Object.keys(queries).length) {
+      throw new Error(`No filter queries were provided; to get a specific entry, use the GET /api/:user_id/:env_name/:table_name endpoint, and to get all entries in a table, use the GET /api/:user_id/:env_name/:table_name endpoint.`);
+    }
+
+    console.log('queries: ',queries);
+
+  } catch (err) {
+    let msg = (err as Error).message;
+    if (/^column \"(.*?)\" does not exist$/.test(msg))
+      msg = `Field '${field_name}' does not exist`;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
       msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
     return res.status(400).json({ error: "ERROR: " + msg });
   }
