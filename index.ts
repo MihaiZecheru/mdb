@@ -873,10 +873,6 @@ app.get('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, 
     }
 
     let field = response.rows[0][field_name];
-    if (!field) {
-      throw new Error(`Field '${field_name}' does not exist`);
-    }
-
     const field_type = JSON.parse((await db.query(`SELECT fields FROM user_tables WHERE table_id = $1`, [table_id])).rows[0].fields).find((f: field) => f.name === field_name).type;
 
     if (field_type === 'array') {
@@ -888,7 +884,10 @@ app.get('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, 
     }
     return res.status(200).json(field);
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/^column \"(.*?)\" does not exist$/.test(msg))
+      msg = `Field '${field_name}' does not exist`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
