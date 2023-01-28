@@ -825,7 +825,10 @@ app.get('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
 
     return res.status(200).json(entry);
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg))
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
@@ -887,6 +890,8 @@ app.get('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, 
     let msg = (err as Error).message;
     if (/^column \"(.*?)\" does not exist$/.test(msg))
       msg = `Field '${field_name}' does not exist`;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
     return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
@@ -999,7 +1004,10 @@ app.post('/api/:user_id/:env_name/:table_name', async (req: any, res: any) => {
 
     return res.status(200).json(...(await api_db.query(`INSERT INTO ${table_id} (${Object.keys(entry).join(', ')}) VALUES (${Object.keys(entry).map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`, Object.values(entry))).rows);
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
@@ -1092,7 +1100,102 @@ app.put('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
     // update fields
     res.status(200).json(...(await api_db.query(`UPDATE ${table_id} SET ${given_fieldnames.map((fieldname, i) => `${fieldname} = $${i + 1}`).join(', ')} WHERE _id = $${given_fieldnames.length + 1} RETURNING *`, [...given_fieldnames.map(fieldname => req.body[fieldname]), entry_id])).rows);
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg))
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
+  }
+});
+
+app.put('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, res: any) => {
+  const entry_id = req.params.id;
+  const user_id = req.params.user_id;
+  const env_name = req.params.env_name;
+  const table_name = req.params.table_name;
+  const field_name = req.params.field_name;
+  let field_value = req.body.value;
+  const auth = req.headers.authorization;
+
+  if (Handle.invalidUserId(user_id, res)) return;
+
+  if (!auth) {
+    return res.status(401).json({ error: 'User is not authorized; no authentication header provided' });
+  }
+
+  try {
+    const auth_response = await db.query(`SELECT auth FROM users WHERE id = $1`, [user_id]);
+
+    if (!auth_response.rows.length) {
+      throw new Error(`User with id '${user_id}' does not exist.`);
+    }
+
+    const user_auth = auth_response.rows[0].auth;
+    if (user_auth !== auth) {
+      throw new Error(`User is not authorized`);
+    }
+
+    const env_exists = (await db.query(`SELECT 1 FROM user_environments WHERE owner_id = $1 AND name = $2`, [user_id, env_name])).rows.length;
+
+    if (!env_exists) {
+      throw new Error(`Environment '${env_name}' does not exist for user '${user_id}'`);
+    }
+    
+    /* skip checking for table existence; if the table doesn't exist an error will be returned, saving a query */
+
+    const table_id = tableId(user_id, env_name, table_name);
+
+    if (!field_value) {
+      throw new Error(`Field value must be provided; { 'value': '...' } should be included in the request body`);
+    }
+
+    // get field
+    const fields_raw = JSON.parse((await db.query(`SELECT fields FROM user_tables WHERE table_id = $1`, [table_id])).rows[0].fields);
+    const field = fields_raw.find((f: field) => f.name === field_name);
+
+    if (!field) {
+      throw new Error(`Field '${field.name}' does not exist in table '${table_name}'`);
+    }
+
+    // validate field
+    if (field.type.includes('string') && typeof field_value !== 'string') {
+    throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
+    } else if (field.type === 'integer' && (typeof field_value !== 'number' || !Number.isInteger(field_value))) {
+      throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
+    } else if (field.type === 'float' && (typeof field_value !== 'number' || Number.isInteger(field_value))) {
+      throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
+    } else if (field.type === 'boolean' && typeof field_value !== 'boolean') {
+      throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
+    } else if (field.type === 'date' && !field_value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
+    } else if (field.type === 'time' && !field_value.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
+    } else if (field.type === 'datetime' && !field_value.test(/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
+    } else if (field.type === 'url' && !isValidUrl(field_value)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
+    } else if (field.type === 'email' && !isValidEmail(field_value)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"email\"`);
+    } else if (field.type === 'phone' && !isValidPhone(field_value)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"phone\"`);
+    } else if (field.type === 'array' && !Array.isArray(field_value)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"array\"`);
+    } else if (field.type === 'json' && typeof field_value !== 'object') {
+      throw new Error(`Field \"${field.name}\" must be of type \"json\"`);
+    } else if (field.type === 'emoji' && !isValidEmoji(field_value)) {
+      throw new Error(`Field \"${field.name}\" must be of type \"emoji\"`);
+    }
+
+    if (field.type === 'array' || field.type === 'json') {
+      field_value = JSON.stringify(field_value);
+    }
+
+    // update fields
+    res.status(200).json(...(await api_db.query(`UPDATE ${table_id} SET ${field_name} = $1 WHERE _id = $2 RETURNING ${field_name}`, [field_value, entry_id])).rows);
+  } catch (err) {
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
@@ -1134,7 +1237,10 @@ app.delete('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any)
     // delete entry
     res.status(200).json(...(await api_db.query(`DELETE FROM ${table_id} WHERE _id = $1 RETURNING *`, [entry_id])).rows);
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
@@ -1191,7 +1297,10 @@ app.delete('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: an
       res.status(200).json(...(await api_db.query(`UPDATE ${table_id} SET ${field_name} = NULL WHERE _id = $1 RETURNING (SELECT ${field_name} FROM ${table_id} WHERE _id = $2)`, [entry_id, entry_id])).rows);
     }
   } catch (err) {
-    return res.status(400).json({ error: "ERROR: " + (err as Error).message });
+    let msg = (err as Error).message;
+    if (/relation \"(.*?)\" does not exist/.test(msg)) 
+      msg = `Table '${table_name}' does not exist in environment '${env_name}'`;
+    return res.status(400).json({ error: "ERROR: " + msg });
   }
 });
 
