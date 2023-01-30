@@ -935,8 +935,130 @@ app.get('/api/:user_id/:env_name/:table_name/', async (req: any, res: any) => {
       throw new Error(`No filter queries were provided; to get a specific entry, use the GET /api/:user_id/:env_name/:table_name endpoint, and to get all entries in a table, use the GET /api/:user_id/:env_name/:table_name endpoint.`);
     }
 
-    console.log('queries: ',queries);
+    const fields = JSON.parse((await db.query(`SELECT fields FROM user_tables WHERE table_id = $1`, [table_id])).rows[0].fields);
+    let where_clause = '';
 
+    function add_filter(fieldname: string, fieldvalue: unknown, string: boolean = true) {
+      if (string)
+        fieldvalue = `'${fieldvalue}'`;
+      where_clause += ((where_clause === '') ? '' : ' AND ') + `${fieldname} = ${fieldvalue}`;
+    }
+
+    for (const query_name in queries) {
+      let query_value: string = queries[query_name];
+      const field = fields.find((f: field) => f.name === query_name);
+      let special_op = false;
+
+      // check to see if the field the query is for exists
+      if (!field) {
+        throw new Error(`Field '${query_name}' does not exist in table '${table_name}'`);
+      }
+
+      if (/;lt;(.*?)/.test(query_value)) {
+        query_value = query_value.replace(';lt;', '');
+        // @ts-ignore
+        if (isNaN(query_value)) {
+          throw new Error(`You're only allowed to use the \";lt;\" operator on fields of type \"integer\" or \"float\"; given query_value '${query_value}' is not a number`);
+        } else {
+          special_op = true;
+          where_clause += ((where_clause === '') ? '' : ' AND ') + `${field.name} < ${query_value}`;
+        }
+      } else if (/;gt;(.*?)/.test(query_value)) {
+        query_value = query_value.replace(';gt;', '');
+        // @ts-ignore
+        if (isNaN(query_value)) {
+          throw new Error(`You're only allowed to use the \";gt;\" operator on fields of type \"integer\" or \"float\"; given query_value '${query_value}' is not a number`);
+        } else {
+          special_op = true;
+          where_clause += ((where_clause === '') ? '' : ' AND ') + `${field.name} > ${query_value}`;
+        }
+      } else if (/;ltet;(.*?)/.test(query_value)) {
+        query_value = query_value.replace(';ltet;', '');
+        // @ts-ignore
+        if (isNaN(query_value)) {
+          throw new Error(`You're only allowed to use the \";ltet;\" operator on fields of type \"integer\" or \"float\"; given query_value '${query_value}' is not a number`);
+        } else {
+          special_op = true;
+          where_clause += ((where_clause === '') ? '' : ' AND ') + `${field.name} <= ${query_value}`;
+        }
+      } else if (/;gtet;(.*?)/.test(query_value)) {
+        query_value = query_value.replace(';gtet;', '');
+        // @ts-ignore
+        if (isNaN(query_value)) {
+          throw new Error(`You're only allowed to use the \";gtet;\" operator on fields of type \"integer\" or \"float\"; given query_value '${query_value}' is not a number`);
+        } else {
+          special_op = true;
+          where_clause += ((where_clause === '') ? '' : ' AND ') + `${field.name} >= ${query_value}`;
+        }
+      }
+
+      // check to see if the query value is valid
+      if (field.type.includes('string') && typeof query_value !== 'string') {
+        throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
+        // @ts-ignore
+      } else if (field.type === 'integer' && (typeof query_value !== 'number' && isNaN(query_value) && !Number.isInteger(query_value))) {
+        throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
+        // @ts-ignore
+      } else if (field.type === 'float' && (typeof query_value !== 'number' && isNaN(query_value) && Number.isInteger(query_value))) {
+        throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
+      } else if (field.type === 'boolean' && typeof query_value !== 'boolean') {
+        throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
+      } else if (field.type === 'date' && !query_value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
+      } else if (field.type === 'time' && !query_value.match(/^\d{2}:\d{2}:\d{2}$/)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
+      } else if (field.type === 'datetime' && !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
+      } else if (field.type === 'url' && !isValidUrl(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
+      } else if (field.type === 'email' && !isValidEmail(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"email\"`);
+      } else if (field.type === 'phone' && !isValidPhone(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"phone\"`);
+      } else if (field.type === 'array' && !Array.isArray(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"array\"`);
+      } else if (field.type === 'json' && typeof query_value !== 'object') {
+        throw new Error(`Field \"${field.name}\" must be of type \"json\"`);
+      } else if (field.type === 'emoji' && !isValidEmoji(query_value)) {
+        throw new Error(`Field \"${field.name}\" must be of type \"emoji\"`);
+      }
+
+      if (field.type === 'array' || field.type === 'json') {
+        query_value = JSON.stringify(query_value);
+      }
+
+      if (!special_op) {
+        if (field.type === 'integer') {
+          add_filter(field.name, parseInt(query_value), false);
+        } else if (field.type === 'float') {
+          add_filter(field.name, parseFloat(query_value), false);
+        } else if (field.type === 'boolean') {
+          add_filter(field.name, query_value === 'true', false);
+        } else add_filter(field.name, query_value);
+      }
+    }
+
+    if (where_clause.trim() === '') {
+      throw new Error(`No filter queries were provided; to get a specific entry, use the GET /api/:user_id/:env_name/:table_name endpoint, and to get all entries in a table, use the GET /api/:user_id/:env_name/:table_name endpoint.`);
+    }
+
+    let rows = (await api_db.query(`SELECT * FROM ${table_id} WHERE ${where_clause}`)).rows;
+
+    for (let i = 0; i < rows.length; i++) {
+      for (const fieldname in rows[i]) {
+        if (fieldname === '_id') continue;
+
+        if (fields.find((f: field) => f.name === fieldname).type === 'array') {
+          rows[i][fieldname] = JSON.parse(rows[i][fieldname]);
+        }  else if (fields.find((f: field) => f.name === fieldname).type === 'json') {
+          rows[i][fieldname] = JSON.parse(rows[i][fieldname]);
+        } else if (fields.find((f: field) => f.name === fieldname).type === 'emoji' && rows[i][fieldname][0] === ':') {
+          rows[i][fieldname] = getEmoji(rows[i][fieldname]);
+        }
+      }
+    }
+
+    res.status(200).json(rows);
   } catch (err) {
     let msg = (err as Error).message;
     if (/^column \"(.*?)\" does not exist$/.test(msg))
@@ -1073,9 +1195,9 @@ app.post('/api/:user_id/:env_name/:table_name', async (req: any, res: any) => {
 
       if (field.type.includes('string') && typeof req.body[fieldname] !== 'string') {
         throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
-      } else if (field.type === 'integer' && (typeof req.body[fieldname] !== 'number' || !Number.isInteger(req.body[fieldname]))) {
+      } else if (field.type === 'integer' && (typeof req.body[fieldname] !== 'number' && !Number.isInteger(req.body[fieldname]))) {
         throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
-      } else if (field.type === 'float' && (typeof req.body[fieldname] !== 'number' || Number.isInteger(req.body[fieldname]))) {
+      } else if (field.type === 'float' && (typeof req.body[fieldname] !== 'number' && Number.isInteger(req.body[fieldname]))) {
         throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
       } else if (field.type === 'boolean' && typeof req.body[fieldname] !== 'boolean') {
         throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
@@ -1083,7 +1205,7 @@ app.post('/api/:user_id/:env_name/:table_name', async (req: any, res: any) => {
         throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
       } else if (field.type === 'time' && !req.body[fieldname].match(/^\d{2}:\d{2}:\d{2}$/)) {
         throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
-      } else if (field.type === 'datetime' && !req.body[fieldname].test(/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/)) {
+      } else if (field.type === 'datetime' && !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(req.body[fieldname])) {
         throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
       } else if (field.type === 'url' && !isValidUrl(req.body[fieldname])) {
         throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
@@ -1181,9 +1303,9 @@ app.put('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
 
       if (field.type.includes('string') && typeof req.body[fieldname] !== 'string') {
         throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
-      } else if (field.type === 'integer' && (typeof req.body[fieldname] !== 'number' || !Number.isInteger(req.body[fieldname]))) {
+      } else if (field.type === 'integer' && (typeof req.body[fieldname] !== 'number' && !Number.isInteger(req.body[fieldname]))) {
         throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
-      } else if (field.type === 'float' && (typeof req.body[fieldname] !== 'number' || Number.isInteger(req.body[fieldname]))) {
+      } else if (field.type === 'float' && (typeof req.body[fieldname] !== 'number' && Number.isInteger(req.body[fieldname]))) {
         throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
       } else if (field.type === 'boolean' && typeof req.body[fieldname] !== 'boolean') {
         throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
@@ -1191,7 +1313,7 @@ app.put('/api/:user_id/:env_name/:table_name/:id', async (req: any, res: any) =>
         throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
       } else if (field.type === 'time' && !req.body[fieldname].match(/^\d{2}:\d{2}:\d{2}$/)) {
         throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
-      } else if (field.type === 'datetime' && !req.body[fieldname].test(/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/)) {
+      } else if (field.type === 'datetime' && !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(req.body[fieldname])) {
         throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
       } else if (field.type === 'url' && !isValidUrl(req.body[fieldname])) {
         throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
@@ -1274,9 +1396,9 @@ app.put('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, 
     // validate field
     if (field.type.includes('string') && typeof field_value !== 'string') {
     throw new Error(`Field \"${field.name}\" must be of type \"string\"`);
-    } else if (field.type === 'integer' && (typeof field_value !== 'number' || !Number.isInteger(field_value))) {
+    } else if (field.type === 'integer' && (typeof field_value !== 'number' && !Number.isInteger(field_value))) {
       throw new Error(`Field \"${field.name}\" must be of type \"integer\"`);
-    } else if (field.type === 'float' && (typeof field_value !== 'number' || Number.isInteger(field_value))) {
+    } else if (field.type === 'float' && (typeof field_value !== 'number' && Number.isInteger(field_value))) {
       throw new Error(`Field \"${field.name}\" must be of type \"float\"`);
     } else if (field.type === 'boolean' && typeof field_value !== 'boolean') {
       throw new Error(`Field \"${field.name}\" must be of type \"boolean\"`);
@@ -1284,7 +1406,7 @@ app.put('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: any, 
       throw new Error(`Field \"${field.name}\" must be of type \"date\"`);
     } else if (field.type === 'time' && !field_value.match(/^\d{2}:\d{2}:\d{2}$/)) {
       throw new Error(`Field \"${field.name}\" must be of type \"time\"`);
-    } else if (field.type === 'datetime' && !field_value.test(/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/)) {
+    } else if (field.type === 'datetime' && !/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(field_value)) {
       throw new Error(`Field \"${field.name}\" must be of type \"datetime\"`);
     } else if (field.type === 'url' && !isValidUrl(field_value)) {
       throw new Error(`Field \"${field.name}\" must be of type \"url\"`);
