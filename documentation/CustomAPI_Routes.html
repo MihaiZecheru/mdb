@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Requests for your custom API endpoints</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>
+        hljs.configure({
+            tabReplace: '    ',
+        });
+        hljs.initHighlightingOnLoad();
+    </script>
+    <style>body {
+    position: relative;
+}
+
+h1 {
+    margin-top: 5px;
+}
+
+h1, h2, h3, h4 {
+    color: #2b2b2b;
+}
+
+h2:after {
+    content: ' ';
+}
+
+h5 {
+    font-weight: bold;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    display: none;
+    position: absolute;
+    margin-left: 8px;
+}
+
+h1:hover a, h2:hover a, h3:hover a, h4:hover a, h5:hover a, h6:hover a {
+    color: #a5a5a5;
+    display: initial;
+}
+
+.nav.nav-tabs > li > a {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tab-content {
+    padding-top: 8px;
+}
+
+.table {
+    margin-bottom: 8px;
+}
+
+pre {
+    border-radius: 0px;
+    border: none;
+}
+
+pre code {
+    margin: -9.5px;
+}
+
+.request {
+    margin-top: 12px;
+    margin-bottom: 24px;
+}
+
+.response-text-sample {
+    padding: 0px !important;
+}
+
+.response-text-sample pre {
+    margin-bottom: 0px;
+}
+
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #2b2b2b;
+    padding-top: 20px;
+}
+
+#sidebar-wrapper ul {
+    width: 250px;
+}
+
+#sidebar-wrapper ul li {
+    margin-right: 10px;
+}
+
+#sidebar-wrapper ul li a:hover {
+    background: inherit;
+    text-decoration: none;
+}
+
+#sidebar-wrapper ul li a {
+    display: block;
+    color: #ECF0F1;
+    padding: 6px 15px;
+}
+
+#sidebar-wrapper ul li ul {
+    padding-left: 25px;
+}
+
+#sidebar-wrapper ul li ul li a {
+    padding: 1px 0px;
+}
+
+#sidebar-wrapper ul li a:hover,
+#sidebar-wrapper ul li a:focus {
+    color: #e0c46c;
+    border-right: solid 1px #e0c46c;
+}
+
+#sidebar-wrapper ul li.active > a {
+    color: #e0c46c;
+    border-right: solid 3px #e0c46c;
+}
+
+#sidebar-wrapper ul li:not(.active) ul {
+    display: none;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px 15px 15px 250px;
+}
+</style>
+</head>
+<body data-spy="scroll" data-target=".scrollspy">
+<div id="sidebar-wrapper">
+    <div class="scrollspy">
+    <ul id="main-menu" data-spy="affix" class="nav">
+        <li>
+            <a href="#doc-general-notes">General notes</a>
+        </li>
+        
+        <li>
+            <a href="#doc-api-detail">API detail</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-all-entries">Get All Entries</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-entry-by-id">Get Entry By ID</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-an-entry-s-field-by-id">Get An Entry's Field By ID</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-entry-filter-queries">Get Entry - Filter Queries</a>
+        </li>
+        
+        <li>
+            <a href="#request-update-entry">Update Entry</a>
+        </li>
+        
+        <li>
+            <a href="#request-update-an-entry-s-field">Update An Entry's Field</a>
+        </li>
+        
+        <li>
+            <a href="#request-create-new-entry">Create New Entry</a>
+        </li>
+        
+        <li>
+            <a href="#request-delete-entry">Delete Entry</a>
+        </li>
+        
+        <li>
+            <a href="#request-delete-an-entry-s-field">Delete An Entry's Field</a>
+        </li>
+        
+        
+    </ul>
+</div>
+
+</div>
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>Requests for your custom API endpoints</h1>
+
+                <h2 id="doc-general-notes">
+                    General notes
+                    <a href="#doc-general-notes"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                <p>To successfully interact with the <code>/api/</code> endpoint of the MDB application, a <code>user</code> must first create an <code>environment</code>, and then a <code>table</code> inside said environment. This table is what is being queried when requests are made to this endpoint.</p>
+
+<p>Tables are made by setting up custom fields with properties such as <code>setNotNull</code> ,<code>default</code> ,<code>auto_date</code> etc. which can be used to customize each individual <code>field</code> in a <code>table</code>. Once the table is made, the user can interact with their table by following the standard REST API protocol:</p>
+
+<ul>
+<li>new entries to the table can be created via POST requests</li>
+<li>entries can be retrieved via GET requests</li>
+<li>entries can be updated via PATCH requests</li>
+<li>entries can be delete via DELETET requests
+<br /></li>
+</ul>
+
+<p>An example of a use case for this API is a <code>userdata</code> table, where each <code>entry</code> contains user data. Custom fields can be set up by initializing <code>fields</code> for a <code>username</code> and <code>password</code>, and each <code>entry</code> can be an individual user for your application.</p>
+
+<p>Tables are private, meaning only the user who owns them can perform operations on them. To confirm you are the user making a request to this endpoint, provide your <code>API key / access token</code> in the request headers.</p>
+
+<h3>Custom Table Example Visualized</h3>
+
+<table>
+<thead>
+<tr>
+<th><strong>Entry ID</strong></th>
+<th><strong>Username</strong></th>
+<th><strong>Password</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>1</td>
+<td>brownricedelightful</td>
+<td>BnQS&amp;14A</td>
+</tr>
+
+<tr>
+<td>2</td>
+<td>According-Size1616</td>
+<td>hQ9TaEW3zEt</td>
+</tr>
+
+<tr>
+<td>3</td>
+<td>JohnDoe_2408</td>
+<td>ar8cp1EUx21R4</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td>TargetOfPerpetuity</td>
+<td>xef&amp;2jGJ9Bz</td>
+</tr>
+
+<tr>
+<td>5</td>
+<td>Glittering_Square897</td>
+<td>GWyj34Ra</td>
+</tr>
+
+<tr>
+<td>6</td>
+<td>100percentAvocado</td>
+<td>1BPLaPJr</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Custom Table API Example Requests</h3>
+
+<p><u>The access token is left out of the requests in this example.</u></p>
+
+<p>The URL template is <code>/api/{{user_id}}/{{env_name}}/{{table_name}}/</code></p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Method</strong></th>
+<th><strong>Request URL</strong></th>
+<th><strong>Request Body</strong></th>
+<th><strong>Response</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/17/cool_api/userdata/</code></td>
+<td><code>{ username: DokZayas, password: PcRHgkY6Pv }</code></td>
+<td><code>UserdataEntry { _id: 7, username: DokZayas, password: PcRHgkY6Pv }</code></td>
+</tr>
+
+<tr>
+<td>GET</td>
+<td><code>/api/17/cool_api/userdata/3</code></td>
+<td></td>
+<td><code>UserdataEntry { _id: 3, username: JohnDoe_2408, password: ar8cp1EUx21R4 }</code></td>
+</tr>
+
+<tr>
+<td>PATCH</td>
+<td><code>/api/17/cool_api/userdata/5</code></td>
+<td><code>{ username: 99percentAvocado }</code></td>
+<td><code>UserdataEntry { _id: 5, username: 99percentAvocado, password: 1BPLaPJr }</code></td>
+</tr>
+
+<tr>
+<td>DELETE</td>
+<td><code>/api/17/cool_api/userdata/2</code></td>
+<td></td>
+<td><code>{ &quot;message&quot;: &quot;Entry with id '2' has been successfully deleted&quot; }</code></td>
+</tr>
+</tbody>
+</table>
+
+<p><u>Note: the provided examples will not actually work, and will return an authorization error as they are intended to be only visual examples.</u></p>
+
+
+                
+
+                <h2 id="doc-api-detail">
+                    API detail
+                    <a href="#doc-api-detail"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-all-entries">
+                        Get All Entries
+                        <a href="#request-get-all-entries"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div></div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-all-entries-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-all-entries-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-all-entries-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/all"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-all-entries-example-http">
+                                <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/all HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-all-entries-responses-d1263fc4-a089-4799-b6d0-dcc3c553c6a0" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-all-entries-responses-d1263fc4-a089-4799-b6d0-dcc3c553c6a0">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-entry-by-id">
+                        Get Entry By ID
+                        <a href="#request-get-entry-by-id"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>entry</code> with the given <code>entry_id</code> from your custom table, which is under the environment with the given <code>env_name</code>, belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the entry or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-entry-by-id-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-entry-by-id-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-entry-by-id-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-entry-by-id-example-http">
+                                <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-entry-by-id-responses-604c4111-7f0a-4ec0-8153-e928638a84f6" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-entry-by-id-responses-604c4111-7f0a-4ec0-8153-e928638a84f6">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "_id": 3,
+    "username": "JohnDoe_2408",
+    "password": "ar8cp1EUx21R4"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-an-entry-s-field-by-id">
+                        Get An Entry's Field By ID
+                        <a href="#request-get-an-entry-s-field-by-id"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div></div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-an-entry-s-field-by-id-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-an-entry-s-field-by-id-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-an-entry-s-field-by-id-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-an-entry-s-field-by-id-example-http">
+                                <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-an-entry-s-field-by-id-responses-a6732dde-ac89-4a59-874e-edfe9243457c" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-an-entry-s-field-by-id-responses-a6732dde-ac89-4a59-874e-edfe9243457c">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>"JohnDoe_2408"</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-entry-filter-queries">
+                        Get Entry - Filter Queries
+                        <a href="#request-get-entry-filter-queries"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div></div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-entry-filter-queries-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-entry-filter-queries-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-entry-filter-queries-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{filter_queries}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-entry-filter-queries-example-http">
+                                <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bfilter_queries%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-entry-filter-queries-responses-71375a90-841d-4e6e-8a09-1df0584214e4" data-toggle="tab">
+                                    
+                                    Get Entry - Filter Queries
+                                    
+                                </a>
+                            </li>
+                            
+                            <li role="presentation">
+                                <a href="#request-get-entry-filter-queries-responses-b0b7e3db-550f-43d2-909d-088d04704144" data-toggle="tab">
+                                    
+                                    Get Entry - Filter Queries
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-entry-filter-queries-responses-71375a90-841d-4e6e-8a09-1df0584214e4">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "_id": 3,
+    "username": "JohnDoe_2408",
+    "password": "ar8cp1EUx21R4",
+    "age": 35
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                            <div class="tab-pane" id="request-get-entry-filter-queries-responses-b0b7e3db-550f-43d2-909d-088d04704144">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>[
+    {
+        "_id": 3,
+        "username": "JohnDoe_2408",
+        "password": "ar8cp1EUx21R4",
+        "age": 35
+    }
+]</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-update-entry">
+                        Update Entry
+                        <a href="#request-update-entry"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Update the entry with the given <code>entry_id</code> in your custom API / database. The request URL contains the path to your table; <code>/user_id/env_name/table_name/</code>, ending with the entry number you wish to delete.</p>
+
+<p>EndFragment</p>
+
+<p>This post request cannot be properly defined other than in the URL, as the request body will contain different information for different tables. If, for example, a table contained two fields such as in the example above&ndash;username and password&ndash;the request body would contain values for a username and password.</p>
+
+<p>Returns the updated entry or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-update-entry-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-update-entry-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-update-entry-example-curl">
+                                <pre><code class="hljs curl">curl -X PUT -H "Authorization: {{auth}}" -d '{
+    "username": "johnsmith"
+}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-update-entry-example-http">
+                                <pre><code class="hljs http">PUT /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "username": "johnsmith"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-update-entry-responses-9256d027-b87e-49f3-909a-656c454a56d1" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-update-entry-responses-9256d027-b87e-49f3-909a-656c454a56d1">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "_id": 5,
+    "username": "99percentAvocado",
+    "password": "1BPLaPJr"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-update-an-entry-s-field">
+                        Update An Entry's Field
+                        <a href="#request-update-an-entry-s-field"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div></div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-update-an-entry-s-field-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-update-an-entry-s-field-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-update-an-entry-s-field-example-curl">
+                                <pre><code class="hljs curl">curl -X PUT -H "Authorization: {{auth}}" -d '{
+    "value": 5
+}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-update-an-entry-s-field-example-http">
+                                <pre><code class="hljs http">PUT /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "value": 5
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-update-an-entry-s-field-responses-49249aec-8e99-4a4e-b510-16d320c23fdc" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-update-an-entry-s-field-responses-49249aec-8e99-4a4e-b510-16d320c23fdc">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-create-new-entry">
+                        Create New Entry
+                        <a href="#request-create-new-entry"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Create a new entry to your custom API / database. The request URL contains the path to your table; <code>/user_id/env_name/table_name/</code></p>
+
+<p>This post request cannot be properly defined other than in the URL, as the request body will contain different information for different tables. If, for example, a table contained two fields such as in the example above&ndash;username and password&ndash;the request body would contain values for a username and password.</p>
+
+<p>Returns the new entry or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-create-new-entry-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-create-new-entry-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-create-new-entry-example-curl">
+                                <pre><code class="hljs curl">curl -X POST -H "Authorization: {{auth}}" -d '{
+    "entry_fields": "are specific to each table / custom API",
+    "but_follow": "this format of key-value pairs"
+}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-create-new-entry-example-http">
+                                <pre><code class="hljs http">POST /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "entry_fields": "are specific to each table / custom API",
+    "but_follow": "this format of key-value pairs"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-create-new-entry-responses-1fa87cd8-34b0-4de9-8d46-ae45d3b6b1f9" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-create-new-entry-responses-1fa87cd8-34b0-4de9-8d46-ae45d3b6b1f9">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "_id": 7,
+    "username": "DokZayas",
+    "password": "PcRHgkY6Pv"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-delete-entry">
+                        Delete Entry
+                        <a href="#request-delete-entry"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>StartFragment</p>
+
+<p>Delete an entry from your custom API / database. The request URL contains the path to your table; <code>/user_id/env_name/table_name/</code>, ending with the entry number you wish to delete.</p>
+
+<p>Returns a confirmation message or an error message.</p>
+
+<p>EndFragment</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-delete-entry-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-delete-entry-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-delete-entry-example-curl">
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-delete-entry-example-http">
+                                <pre><code class="hljs http">DELETE /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-delete-entry-responses-3e2e38aa-51eb-4a11-a8f6-2e5cd15744e8" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-delete-entry-responses-3e2e38aa-51eb-4a11-a8f6-2e5cd15744e8">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "message": "Entry with id '2' has been successfully deleted"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-delete-an-entry-s-field">
+                        Delete An Entry's Field
+                        <a href="#request-delete-an-entry-s-field"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div></div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-delete-an-entry-s-field-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-delete-an-entry-s-field-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-delete-an-entry-s-field-example-curl">
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-delete-an-entry-s-field-example-http">
+                                <pre><code class="hljs http">DELETE /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-delete-an-entry-s-field-responses-81b10e16-fa6f-4277-8bb5-e88b10195f91" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-delete-an-entry-s-field-responses-81b10e16-fa6f-4277-8bb5-e88b10195f91">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>0 </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("table:not(.table)").addClass('table table-bordered');
+    });
+</script>
+</body>
+</html>

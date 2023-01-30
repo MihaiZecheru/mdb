@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Requests for the /tables/ endpoint</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>
+        hljs.configure({
+            tabReplace: '    ',
+        });
+        hljs.initHighlightingOnLoad();
+    </script>
+    <style>body {
+    position: relative;
+}
+
+h1 {
+    margin-top: 5px;
+}
+
+h1, h2, h3, h4 {
+    color: #2b2b2b;
+}
+
+h2:after {
+    content: ' ';
+}
+
+h5 {
+    font-weight: bold;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    display: none;
+    position: absolute;
+    margin-left: 8px;
+}
+
+h1:hover a, h2:hover a, h3:hover a, h4:hover a, h5:hover a, h6:hover a {
+    color: #a5a5a5;
+    display: initial;
+}
+
+.nav.nav-tabs > li > a {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tab-content {
+    padding-top: 8px;
+}
+
+.table {
+    margin-bottom: 8px;
+}
+
+pre {
+    border-radius: 0px;
+    border: none;
+}
+
+pre code {
+    margin: -9.5px;
+}
+
+.request {
+    margin-top: 12px;
+    margin-bottom: 24px;
+}
+
+.response-text-sample {
+    padding: 0px !important;
+}
+
+.response-text-sample pre {
+    margin-bottom: 0px;
+}
+
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #2b2b2b;
+    padding-top: 20px;
+}
+
+#sidebar-wrapper ul {
+    width: 250px;
+}
+
+#sidebar-wrapper ul li {
+    margin-right: 10px;
+}
+
+#sidebar-wrapper ul li a:hover {
+    background: inherit;
+    text-decoration: none;
+}
+
+#sidebar-wrapper ul li a {
+    display: block;
+    color: #ECF0F1;
+    padding: 6px 15px;
+}
+
+#sidebar-wrapper ul li ul {
+    padding-left: 25px;
+}
+
+#sidebar-wrapper ul li ul li a {
+    padding: 1px 0px;
+}
+
+#sidebar-wrapper ul li a:hover,
+#sidebar-wrapper ul li a:focus {
+    color: #e0c46c;
+    border-right: solid 1px #e0c46c;
+}
+
+#sidebar-wrapper ul li.active > a {
+    color: #e0c46c;
+    border-right: solid 3px #e0c46c;
+}
+
+#sidebar-wrapper ul li:not(.active) ul {
+    display: none;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px 15px 15px 250px;
+}
+</style>
+</head>
+<body data-spy="scroll" data-target=".scrollspy">
+<div id="sidebar-wrapper">
+    <div class="scrollspy">
+    <ul id="main-menu" data-spy="affix" class="nav">
+        <li>
+            <a href="#doc-general-notes">General notes</a>
+        </li>
+        
+        <li>
+            <a href="#doc-api-detail">API detail</a>
+        </li>
+        
+        <li>
+            <a href="#request-create-new-table">Create New Table</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table">Get Table</a>
+        </li>
+        
+        <li>
+            <a href="#request-update-table">Update Table</a>
+        </li>
+        
+        <li>
+            <a href="#request-delete-table">Delete Table</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table-id">Get Table ID</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table-name">Get Table Name</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table-environment-name">Get Table Environment Name</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table-description">Get Table Description</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-table-fields">Get Table Fields</a>
+        </li>
+        
+        
+    </ul>
+</div>
+
+</div>
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>Requests for the /tables/ endpoint</h1>
+
+                <h2 id="doc-general-notes">
+                    General notes
+                    <a href="#doc-general-notes"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                <p>The <code>/tables/</code> endpoint is part of the &lsquo;backend&rsquo; for this API, as this table holds what is essentially &lsquo;metadata&rsquo; for the application.</p>
+
+<p>There are two database tables for keeping track of a user&rsquo;s custom <code>tables</code>. One of the tables keeps track of which tables a user owns and how many there are, while another keeps track of the metadata for each table. Operations can be performed on the <code>tables</code> table through the API calls in this collection.</p>
+
+<p>The tables themselves are what make up the custom API. A user sends a post request to the <code>/tables/</code> endpoint to create an API, and from there, the user can interact with their new API by sending requests to the <code>/api/</code> endpoint. Each custom API is an SQL table that can be interacted with via HTTP requests.</p>
+
+<p>Tables are private, meaning only the user who owns them can perform operations on them. To confirm you are the user making a request to this endpoint, provide your <code>API key / access token</code> in the request headers.</p>
+
+<p>This table can be accessed by regular users, but it is mostly used behind the scenes when users access their custom APIs - this is what is meant by the &lsquo;backend&rsquo;.</p>
+
+<h4>Schema</h4>
+
+<table>
+<thead>
+<tr>
+<th><strong>Field</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>owner_id</td>
+<td>int</td>
+<td>the user_id of the table owner</td>
+</tr>
+
+<tr>
+<td>table_id</td>
+<td>string (63)</td>
+<td>the table&rsquo;s name</td>
+</tr>
+
+<tr>
+<td>environment_name</td>
+<td>string (25)</td>
+<td>the name of the environment the table belongs to</td>
+</tr>
+
+<tr>
+<td>tablename</td>
+<td>varchar (31)</td>
+<td>the table&rsquo;s name</td>
+</tr>
+
+<tr>
+<td>description</td>
+<td>varchar (500)</td>
+<td>a summary / description of the table</td>
+</tr>
+
+<tr>
+<td>fields</td>
+<td>array[field]  <br>  <br>field {  <br>name,  <br>type,  <br>setNotNull,  <br>default,  <br>autodate  <br>}</td>
+<td>contains each field that makes up the custom API table.</td>
+</tr>
+</tbody>
+</table>
+
+<p><u>Note:</u> <code>get table count</code> <u>is not available from this collection. This request is a part of the /users/ collection.</u></p>
+
+
+                
+
+                <h2 id="doc-api-detail">
+                    API detail
+                    <a href="#doc-api-detail"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                
+                
+                <div class="request">
+
+                    <h3 id="request-create-new-table">
+                        Create New Table
+                        <a href="#request-create-new-table"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Create a new table under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>The table information&ndash;the name, description, and fields&ndash;must be passed into the request body.</p>
+
+<p>Returns the new table or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-create-new-table-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-create-new-table-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-create-new-table-example-curl">
+                                <pre><code class="hljs curl">curl -X POST -H "Authorization: {{auth}}" -d '{
+    "table_name": "users",
+    "table_description": "table for testing the api",
+    "fields": {
+        "username": "string_30",
+        "age": "integer",
+        "float_number": "float",
+        "is_cool": "boolean",
+        "arr": "array",
+        "json_field": "json",
+        "emoji_field": "emoji",
+        "made": {
+            "type": "datetime",
+            "auto_date": true
+        }
+    }
+}' "http://localhost:3000/tables/{{user_id}}/{{env_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-create-new-table-example-http">
+                                <pre><code class="hljs http">POST /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "table_name": "users",
+    "table_description": "table for testing the api",
+    "fields": {
+        "username": "string_30",
+        "age": "integer",
+        "float_number": "float",
+        "is_cool": "boolean",
+        "arr": "array",
+        "json_field": "json",
+        "emoji_field": "emoji",
+        "made": {
+            "type": "datetime",
+            "auto_date": true
+        }
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-create-new-table-responses-c4282bdd-6a04-4663-a418-0db58c14bcf5" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-create-new-table-responses-c4282bdd-6a04-4663-a418-0db58c14bcf5">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "table_id": "_741_example_env_example_table",
+    "environment_name": "example_env",
+    "tablename": "example_table",
+    "description": "example table for the API documentation",
+    "fields": [
+        {
+            "name": "username",
+            "type": "string_30"
+        },
+        {
+            "name": "password",
+            "type": "string"
+        },
+        {
+            "name": "made",
+            "type": "datetime",
+            "auto_date": true
+        }
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table">
+                        Get Table
+                        <a href="#request-get-table"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the table or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-responses-b5a586a3-723c-40a4-a5c4-b3dbef6d11eb" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-responses-b5a586a3-723c-40a4-a5c4-b3dbef6d11eb">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "table_id": "_741_example_env_example_table",
+    "environment_name": "example_env",
+    "tablename": "example_table",
+    "description": "example table for the API documentation",
+    "fields": [
+        {
+            "name": "username",
+            "type": "string_30"
+        },
+        {
+            "name": "password",
+            "type": "string"
+        },
+        {
+            "name": "made",
+            "type": "datetime",
+            "auto_date": true
+        }
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-update-table">
+                        Update Table
+                        <a href="#request-update-table"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Update the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>The table information&ndash;the name, description, and fields&ndash;must be passed into the request body.</p>
+
+<ul>
+<li>Use <code>rename_fields</code> to change the name of existing fields.</li>
+<li>Use <code>add_fields</code> to add new fields to the table.</li>
+<li>Use <code>remove_fields</code> to delete existing fields.
+<br /></li>
+</ul>
+
+<p>Returns the updated table or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-update-table-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-update-table-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-update-table-example-curl">
+                                <pre><code class="hljs curl">curl -X PATCH -H "Authorization: {{auth}}" -d '{
+    "rename_fields": {
+        "password": "open_sesame!"
+    }
+}' "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-update-table-example-http">
+                                <pre><code class="hljs http">PATCH /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "rename_fields": {
+        "password": "open_sesame!"
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-update-table-responses-acf79c48-1585-40f0-9fce-74defb5e269c" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-update-table-responses-acf79c48-1585-40f0-9fce-74defb5e269c">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "table_id": "_741_example_env_example_table_new_name",
+    "environment_name": "example_env",
+    "tablename": "example_table_new_name",
+    "description": "example table for the API documentation",
+    "fields": [
+        {
+            "name": "username",
+            "type": "string_30"
+        },
+        {
+            "name": "first_name",
+            "type": "string_50"
+        },
+        {
+            "name": "last_name",
+            "type": "string_50"
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "auto_date": true
+        }
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-delete-table">
+                        Delete Table
+                        <a href="#request-delete-table"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Delete the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns a confirmation message or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-delete-table-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-delete-table-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-delete-table-example-curl">
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-delete-table-example-http">
+                                <pre><code class="hljs http">DELETE /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-delete-table-responses-9a82857c-2b9a-44a1-b851-2970750e43ea" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-delete-table-responses-9a82857c-2b9a-44a1-b851-2970750e43ea">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "message": "Table with name 'example_table' has been successfully deleted"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table-id">
+                        Get Table ID
+                        <a href="#request-get-table-id"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>table_id</code> for the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the <code>table_id</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-id-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-id-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-id-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/id"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-id-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/id HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-id-responses-459bbf6c-7227-4427-ade2-081ee566012a" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-id-responses-459bbf6c-7227-4427-ade2-081ee566012a">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table-name">
+                        Get Table Name
+                        <a href="#request-get-table-name"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>table_name</code> of the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the <code>table_id</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-name-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-name-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-name-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/name"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-name-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/name HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-name-responses-0e5b01b2-1cdd-43c2-9864-6e472cb35731" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-name-responses-0e5b01b2-1cdd-43c2-9864-6e472cb35731">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table-environment-name">
+                        Get Table Environment Name
+                        <a href="#request-get-table-environment-name"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>env_name</code> that the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code> is under.</p>
+
+<p>Returns the <code>table_id</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-environment-name-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-environment-name-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-environment-name-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/env_name"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-environment-name-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/env_name HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-environment-name-responses-15ffe526-419d-476b-95b7-a2fe2e116285" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-environment-name-responses-15ffe526-419d-476b-95b7-a2fe2e116285">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table-description">
+                        Get Table Description
+                        <a href="#request-get-table-description"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>description</code> of the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the <code>description</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-description-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-description-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-description-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/description"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-description-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/description HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-description-responses-7f070ac3-4e3d-4374-9c2b-5f4e2aad8973" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-description-responses-7f070ac3-4e3d-4374-9c2b-5f4e2aad8973">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-table-fields">
+                        Get Table Fields
+                        <a href="#request-get-table-fields"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>fields</code> that make up the table with the given <code>table_name</code> under the environment with the given <code>env_name</code> belonging to the user with the given <code>user_id</code>.</p>
+
+<p>Returns the <code>table_id</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-table-fields-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-table-fields-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-table-fields-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/fields"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-table-fields-example-http">
+                                <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/fields HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-table-fields-responses-83731b29-6b20-4de3-a143-4325a38b1559" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-table-fields-responses-83731b29-6b20-4de3-a143-4325a38b1559">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>[
+    "_741_example_env_example_table",
+    "_741_example_env_example_table1"
+]</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("table:not(.table)").addClass('table table-bordered');
+    });
+</script>
+</body>
+</html>

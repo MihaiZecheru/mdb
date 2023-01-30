@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Requests for the /users/ endpoint</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>
+        hljs.configure({
+            tabReplace: '    ',
+        });
+        hljs.initHighlightingOnLoad();
+    </script>
+    <style>body {
+    position: relative;
+}
+
+h1 {
+    margin-top: 5px;
+}
+
+h1, h2, h3, h4 {
+    color: #2b2b2b;
+}
+
+h2:after {
+    content: ' ';
+}
+
+h5 {
+    font-weight: bold;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    display: none;
+    position: absolute;
+    margin-left: 8px;
+}
+
+h1:hover a, h2:hover a, h3:hover a, h4:hover a, h5:hover a, h6:hover a {
+    color: #a5a5a5;
+    display: initial;
+}
+
+.nav.nav-tabs > li > a {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tab-content {
+    padding-top: 8px;
+}
+
+.table {
+    margin-bottom: 8px;
+}
+
+pre {
+    border-radius: 0px;
+    border: none;
+}
+
+pre code {
+    margin: -9.5px;
+}
+
+.request {
+    margin-top: 12px;
+    margin-bottom: 24px;
+}
+
+.response-text-sample {
+    padding: 0px !important;
+}
+
+.response-text-sample pre {
+    margin-bottom: 0px;
+}
+
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #2b2b2b;
+    padding-top: 20px;
+}
+
+#sidebar-wrapper ul {
+    width: 250px;
+}
+
+#sidebar-wrapper ul li {
+    margin-right: 10px;
+}
+
+#sidebar-wrapper ul li a:hover {
+    background: inherit;
+    text-decoration: none;
+}
+
+#sidebar-wrapper ul li a {
+    display: block;
+    color: #ECF0F1;
+    padding: 6px 15px;
+}
+
+#sidebar-wrapper ul li ul {
+    padding-left: 25px;
+}
+
+#sidebar-wrapper ul li ul li a {
+    padding: 1px 0px;
+}
+
+#sidebar-wrapper ul li a:hover,
+#sidebar-wrapper ul li a:focus {
+    color: #e0c46c;
+    border-right: solid 1px #e0c46c;
+}
+
+#sidebar-wrapper ul li.active > a {
+    color: #e0c46c;
+    border-right: solid 3px #e0c46c;
+}
+
+#sidebar-wrapper ul li:not(.active) ul {
+    display: none;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px 15px 15px 250px;
+}
+</style>
+</head>
+<body data-spy="scroll" data-target=".scrollspy">
+<div id="sidebar-wrapper">
+    <div class="scrollspy">
+    <ul id="main-menu" data-spy="affix" class="nav">
+        <li>
+            <a href="#doc-general-notes">General notes</a>
+        </li>
+        
+        <li>
+            <a href="#doc-api-detail">API detail</a>
+        </li>
+        
+        <li>
+            <a href="#request-create-new-user">Create New User</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-by-id">Get User By ID</a>
+        </li>
+        
+        <li>
+            <a href="#request-update-user-fields">Update User Fields</a>
+        </li>
+        
+        <li>
+            <a href="#request-delete-user-by-id">Delete User By ID</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-username">Get User Username</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-password">Get User Password</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-email">Get User Email</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-linked-tables">Get User Linked Tables</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-linked-tables-count">Get User Linked Tables Count</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-linked-environments">Get User Linked Environments</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-user-linked-environment-count">Get User Linked Environment Count</a>
+        </li>
+        
+        
+    </ul>
+</div>
+
+</div>
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>Requests for the /users/ endpoint</h1>
+
+                <h2 id="doc-general-notes">
+                    General notes
+                    <a href="#doc-general-notes"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                <p>The <code>/users/</code> endpoint is part of the &lsquo;backend&rsquo; for this API, as this table holds what is essentially &lsquo;metadata&rsquo; for the application.</p>
+
+<p>The <code>users</code> table holds information on the users who have made an account with MDB. Operations can be performed on the table through the API calls in this collection.</p>
+
+<p>Users own <code>environments</code>, and environments each own a series of <code>tables</code>. Therefore, the user&rsquo;s linked environments, linked tables, environment count, and table count are accessed from this endpoint, not from the <code>/environments/</code> or <code>/tables/</code> endpoints.</p>
+
+<p>In order to create a new <code>user</code>, an admin API key / access token must be provided. Users can access their own entry in the database by confirming they are the user they wish to perform an operation on by providing their <code>API key / access token</code> in the headers of their request to this endpoint. Users may not perform operations on another user&rsquo;s data / entry.</p>
+
+<p>This table can be accessed by regular users, but it is mostly used behind the scenes when users access their custom APIs - this is what is meant by the &lsquo;backend&rsquo;.</p>
+
+<h4><strong>Schema</strong></h4>
+
+<table>
+<thead>
+<tr>
+<th><strong>Field</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>the user&rsquo;s identifier</td>
+</tr>
+
+<tr>
+<td>username</td>
+<td>string (50)</td>
+<td>username</td>
+</tr>
+
+<tr>
+<td>password</td>
+<td>string (255)</td>
+<td>password</td>
+</tr>
+
+<tr>
+<td>email</td>
+<td>string (320)</td>
+<td>email</td>
+</tr>
+
+<tr>
+<td>auth</td>
+<td>string (72)</td>
+<td>the user&rsquo;s access token / authentication</td>
+</tr>
+</tbody>
+</table>
+
+
+                
+
+                <h2 id="doc-api-detail">
+                    API detail
+                    <a href="#doc-api-detail"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                
+                
+                <div class="request">
+
+                    <h3 id="request-create-new-user">
+                        Create New User
+                        <a href="#request-create-new-user"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Create a new MDB <code>user</code> so that they can begin to create environments and tables to interact with.</p>
+
+<p>The <code>username</code>, <code>password</code>, <code>email</code> fields must be passed into the body of the request. The <code>id</code> and <code>auth</code> fields will be automatically filled for the user.</p>
+
+<p>This request will return the new <code>user</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-create-new-user-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-create-new-user-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-create-new-user-example-curl">
+                                <pre><code class="hljs curl">curl -X POST -H "Authorization: {{admin_auth}}" -d '{
+    "username": "chrissy",
+    "password": "mihai28!",
+    "email": "chrissy@gmail.com"
+}' "http://localhost:3000/users/"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-create-new-user-example-http">
+                                <pre><code class="hljs http">POST /users/ HTTP/1.1
+Host: localhost:3000
+Authorization: {{admin_auth}}
+
+{
+    "username": "chrissy",
+    "password": "mihai28!",
+    "email": "chrissy@gmail.com"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-create-new-user-responses-595a08cb-65f3-48db-9520-78ba499fc6be" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-create-new-user-responses-595a08cb-65f3-48db-9520-78ba499fc6be">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "id": 741,
+    "username": "example_user",
+    "password": "abc123",
+    "email": "email@example.com",
+    "auth": "d84b9543-ea39-4134-a7e7-78992400a15c"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-by-id">
+                        Get User By ID
+                        <a href="#request-get-user-by-id"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the MDB <code>user</code> with the given <code>user_id</code>.</p>
+
+<p>The request will return the user or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-by-id-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-by-id-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-by-id-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-by-id-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-by-id-responses-ff1734cb-3c38-4643-bbe1-9ec3b445e419" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-by-id-responses-ff1734cb-3c38-4643-bbe1-9ec3b445e419">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "id": 741,
+    "username": "example_user",
+    "password": "abc123",
+    "email": "email@example.com",
+    "auth": "d84b9543-ea39-4134-a7e7-78992400a15c"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-update-user-fields">
+                        Update User Fields
+                        <a href="#request-update-user-fields"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Update the MDB <code>user</code> with the given <code>user_id</code>.</p>
+
+<p>The <code>username</code>, <code>password</code>, and <code>email</code> fields must be passed into the body of the request. Note: the <code>auth</code> and <code>id</code> fields are permanent and cannot be changed.</p>
+
+<p>The request will return the updated user or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-update-user-fields-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-update-user-fields-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-update-user-fields-example-curl">
+                                <pre><code class="hljs curl">curl -X PATCH -H "Authorization: {{auth}}" -d '{
+    "username": "chrissy",
+    "password": "mihai28!",
+    "email": "chrissy@hotmail.com"
+}' "http://localhost:3000/users/{{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-update-user-fields-example-http">
+                                <pre><code class="hljs http">PATCH /users/%7B%7Buser_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "username": "chrissy",
+    "password": "mihai28!",
+    "email": "chrissy@hotmail.com"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-update-user-fields-responses-bc3b54a5-0942-4b28-b8d9-8428bfa9f532" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-update-user-fields-responses-bc3b54a5-0942-4b28-b8d9-8428bfa9f532">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "id": 741,
+    "username": "example_user_new_name",
+    "password": "abc123",
+    "email": "email@example.com",
+    "auth": "d84b9543-ea39-4134-a7e7-78992400a15c"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-delete-user-by-id">
+                        Delete User By ID
+                        <a href="#request-delete-user-by-id"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Delete the <code>user</code> by with the given <code>user_id</code>.</p>
+
+<p>The request will return a confirmation message or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-delete-user-by-id-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-delete-user-by-id-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-delete-user-by-id-example-curl">
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-delete-user-by-id-example-http">
+                                <pre><code class="hljs http">DELETE /users/%7B%7Buser_id%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-delete-user-by-id-responses-f42301ea-dbb1-4969-bb32-cb69572f822e" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-delete-user-by-id-responses-f42301ea-dbb1-4969-bb32-cb69572f822e">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "message": "User with id '741' has been successfully deleted"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-username">
+                        Get User Username
+                        <a href="#request-get-user-username"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>username</code> of the <code>user</code> with the given <code>user_id</code>.</p>
+
+<p>The request will return the <code>username</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-username-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-username-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-username-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/username"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-username-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/username HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-username-responses-079b3d08-8173-4b10-8054-5dd273edd130" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-username-responses-079b3d08-8173-4b10-8054-5dd273edd130">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-password">
+                        Get User Password
+                        <a href="#request-get-user-password"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>password</code> of the <code>user</code> with the given <code>user_id</code>.</p>
+
+<p>The request will return the <code>password</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-password-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-password-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-password-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/password"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-password-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/password HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-password-responses-2a846d99-3429-4fb5-85d1-ac6ae761e61e" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-password-responses-2a846d99-3429-4fb5-85d1-ac6ae761e61e">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-email">
+                        Get User Email
+                        <a href="#request-get-user-email"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>email</code> of the <code>user</code> with the given <code>user_id</code>.</p>
+
+<p>The request will return the <code>email</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-email-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-email-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-email-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/email"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-email-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/email HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-email-responses-39eca147-abb1-44d8-8b9d-c68ca9acfaea" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-email-responses-39eca147-abb1-44d8-8b9d-c68ca9acfaea">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-linked-tables">
+                        Get User Linked Tables
+                        <a href="#request-get-user-linked-tables"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the linked <code>table_ids</code> the <code>user</code> with the given <code>user_id</code> has.</p>
+
+<p>Linked tables are the tables a user owns, regardless of the environment that they are in.</p>
+
+<p>Returns an array of the linked <code>table_ids</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-linked-tables-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-linked-tables-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-linked-tables-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/tables"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-linked-tables-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/tables HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-linked-tables-responses-959d171d-e846-4b5e-a0f0-7870a01759be" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-linked-tables-responses-959d171d-e846-4b5e-a0f0-7870a01759be">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>[
+    "_example_env_example_table",
+    "_example_env_example_table1"
+]</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-linked-tables-count">
+                        Get User Linked Tables Count
+                        <a href="#request-get-user-linked-tables-count"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the amount of linked tables the <code>user</code> with the given <code>user_id</code> has.</p>
+
+<p>Linked tables are the IDs of a table a user owns, regardless of the environment that they are in.</p>
+
+<p>Returns the number of linked tables or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-linked-tables-count-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-linked-tables-count-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-linked-tables-count-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/tables/count"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-linked-tables-count-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/tables/count HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-linked-tables-count-responses-7a87bb4e-5fee-46a6-9c4b-b70a9397982d" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-linked-tables-count-responses-7a87bb4e-5fee-46a6-9c4b-b70a9397982d">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>2</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-linked-environments">
+                        Get User Linked Environments
+                        <a href="#request-get-user-linked-environments"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the linked <code>environment_ids</code> the <code>user</code> with the given <code>user_id</code> has.</p>
+
+<p>Linked environments are the environments a user owns.</p>
+
+<p>Returns an array of the linked <code>environment_ids</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-linked-environments-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-linked-environments-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-linked-environments-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/environments/?return=not_required"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-linked-environments-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/environments/?return=not_required HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-linked-environments-responses-2d1f1800-6dc4-43a6-8488-40c92ecd45cc" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-linked-environments-responses-2d1f1800-6dc4-43a6-8488-40c92ecd45cc">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>[
+    "example_env"
+]</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-user-linked-environment-count">
+                        Get User Linked Environment Count
+                        <a href="#request-get-user-linked-environment-count"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the amount of linked environments the <code>user</code> with the given <code>user_id</code> has.</p>
+
+<p>Linked environments are the environments a user owns.</p>
+
+<p>Returns the amount of linked environments or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-user-linked-environment-count-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-user-linked-environment-count-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-user-linked-environment-count-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/environments/count/"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-user-linked-environment-count-example-http">
+                                <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/environments/count/ HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-user-linked-environment-count-responses-83218cd7-ae7c-42bc-84e4-bfc8e7cc382a" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-user-linked-environment-count-responses-83218cd7-ae7c-42bc-84e4-bfc8e7cc382a">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>1</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("table:not(.table)").addClass('table table-bordered');
+    });
+</script>
+</body>
+</html>

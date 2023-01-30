@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Requests for the /environments/ endpoint</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script>
+        hljs.configure({
+            tabReplace: '    ',
+        });
+        hljs.initHighlightingOnLoad();
+    </script>
+    <style>body {
+    position: relative;
+}
+
+h1 {
+    margin-top: 5px;
+}
+
+h1, h2, h3, h4 {
+    color: #2b2b2b;
+}
+
+h2:after {
+    content: ' ';
+}
+
+h5 {
+    font-weight: bold;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    display: none;
+    position: absolute;
+    margin-left: 8px;
+}
+
+h1:hover a, h2:hover a, h3:hover a, h4:hover a, h5:hover a, h6:hover a {
+    color: #a5a5a5;
+    display: initial;
+}
+
+.nav.nav-tabs > li > a {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tab-content {
+    padding-top: 8px;
+}
+
+.table {
+    margin-bottom: 8px;
+}
+
+pre {
+    border-radius: 0px;
+    border: none;
+}
+
+pre code {
+    margin: -9.5px;
+}
+
+.request {
+    margin-top: 12px;
+    margin-bottom: 24px;
+}
+
+.response-text-sample {
+    padding: 0px !important;
+}
+
+.response-text-sample pre {
+    margin-bottom: 0px;
+}
+
+
+#sidebar-wrapper {
+    z-index: 1000;
+    position: fixed;
+    left: 250px;
+    width: 250px;
+    height: 100%;
+    margin-left: -250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #2b2b2b;
+    padding-top: 20px;
+}
+
+#sidebar-wrapper ul {
+    width: 250px;
+}
+
+#sidebar-wrapper ul li {
+    margin-right: 10px;
+}
+
+#sidebar-wrapper ul li a:hover {
+    background: inherit;
+    text-decoration: none;
+}
+
+#sidebar-wrapper ul li a {
+    display: block;
+    color: #ECF0F1;
+    padding: 6px 15px;
+}
+
+#sidebar-wrapper ul li ul {
+    padding-left: 25px;
+}
+
+#sidebar-wrapper ul li ul li a {
+    padding: 1px 0px;
+}
+
+#sidebar-wrapper ul li a:hover,
+#sidebar-wrapper ul li a:focus {
+    color: #e0c46c;
+    border-right: solid 1px #e0c46c;
+}
+
+#sidebar-wrapper ul li.active > a {
+    color: #e0c46c;
+    border-right: solid 3px #e0c46c;
+}
+
+#sidebar-wrapper ul li:not(.active) ul {
+    display: none;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    position: absolute;
+    padding: 15px 15px 15px 250px;
+}
+</style>
+</head>
+<body data-spy="scroll" data-target=".scrollspy">
+<div id="sidebar-wrapper">
+    <div class="scrollspy">
+    <ul id="main-menu" data-spy="affix" class="nav">
+        <li>
+            <a href="#doc-general-notes">General notes</a>
+        </li>
+        
+        <li>
+            <a href="#doc-api-detail">API detail</a>
+        </li>
+        
+        <li>
+            <a href="#request-create-new-environment">Create New Environment</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-environment">Get Environment</a>
+        </li>
+        
+        <li>
+            <a href="#request-update-environment">Update Environment</a>
+        </li>
+        
+        <li>
+            <a href="#request-delete-environment">Delete Environment</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-environment-description">Get Environment Description</a>
+        </li>
+        
+        <li>
+            <a href="#request-get-environment-tables">Get Environment Tables</a>
+        </li>
+        
+        
+    </ul>
+</div>
+
+</div>
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>Requests for the /environments/ endpoint</h1>
+
+                <h2 id="doc-general-notes">
+                    General notes
+                    <a href="#doc-general-notes"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                <p>The <code>/environments/</code> endpoint is part of the &lsquo;backend&rsquo; for this API, as this table holds what is essentially &lsquo;metadata&rsquo; for the application.</p>
+
+<p>There are two tables used for keeping track of a user&rsquo;s environments. One of the tables keeps track of which environments a user owns and how many there are, while another keeps track of the metadata for each environment. Operations can be performed on the table through the API calls in this collection.</p>
+
+<p>An <code>environment</code> is a wrapper to a custom API made on MDB. A <code>user</code> owns one or more environments, with each environment owning one or more custom API <code>tables</code>. The environments keep track of the tables and allow a user to use the same name for one of their tables in each environment.</p>
+
+<p>Environments are private, meaning only the user who owns them can perform operations on them. To confirm you are the user making a request to this endpoint, provide your <code>API key / access token</code> in the request headers.</p>
+
+<p>This table can be accessed by regular users, but it is mostly used behind the scenes when users access their custom APIs - this is what is meant by the &lsquo;backend&rsquo;.</p>
+
+<h4>Schema</h4>
+
+<table>
+<thead>
+<tr>
+<th><strong>Field</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>owner_id</td>
+<td>int</td>
+<td>the user_id of the environment owner</td>
+</tr>
+
+<tr>
+<td>name</td>
+<td>string (25)</td>
+<td>environment name (env_name)</td>
+</tr>
+
+<tr>
+<td>description</td>
+<td>string (500)</td>
+<td>a summary / description of the environment</td>
+</tr>
+
+<tr>
+<td>tables</td>
+<td>array[table_id]</td>
+<td>contains the id of each table in the environment</td>
+</tr>
+</tbody>
+</table>
+
+<p><u>Note: </u> <code>get environment count</code> <u>is not available from this collection. This request is a part of the /users/ collection.</u></p>
+
+
+                
+
+                <h2 id="doc-api-detail">
+                    API detail
+                    <a href="#doc-api-detail"><i class="glyphicon glyphicon-link"></i></a>
+                </h2>
+
+                
+                
+                <div class="request">
+
+                    <h3 id="request-create-new-environment">
+                        Create New Environment
+                        <a href="#request-create-new-environment"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Create a new environment for the user with the given <code>user_id</code>.</p>
+
+<p>The environment information&ndash;the name and description&ndash;must be passed into the request body.</p>
+
+<p>The request returns the new environment or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-create-new-environment-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-create-new-environment-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-create-new-environment-example-curl">
+                                <pre><code class="hljs curl">curl -X POST -H "Authorization: {{auth}}" -d '{
+    "name": "main_env",
+    "description": "the main environment"
+}' "http://localhost:3000/environments/?user_id={{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-create-new-environment-example-http">
+                                <pre><code class="hljs http">POST /environments/?user_id={{user_id}} HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "name": "main_env",
+    "description": "the main environment"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-create-new-environment-responses-70c2e5c3-cf4d-4369-9fbf-20d6b44a2636" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-create-new-environment-responses-70c2e5c3-cf4d-4369-9fbf-20d6b44a2636">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "name": "example_env",
+    "description": "an example API for the documentation",
+    "tables": [
+        "_741_example_env_example_table",
+        "_741_example_env_example_table1"
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-environment">
+                        Get Environment
+                        <a href="#request-get-environment"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the environment with the given <code>env_name</code> for the user with the given <code>user_id</code>.</p>
+
+<p>The request returns the environment or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-environment-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-environment-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-environment-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-environment-example-http">
+                                <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/?user_id={{user_id}} HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-environment-responses-31862cf1-69a5-40d8-8ba3-d60d451c534f" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-environment-responses-31862cf1-69a5-40d8-8ba3-d60d451c534f">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "name": "example_env",
+    "description": "an example API for the documentation",
+    "tables": [
+        "_741_example_env_example_table",
+        "_741_example_env_example_table1"
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-update-environment">
+                        Update Environment
+                        <a href="#request-update-environment"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Update the environment with the given <code>env_name</code> for the user with the given <code>user_id</code>.</p>
+
+<p>The environment information&ndash;the name, description, and fields&ndash;must be passed into the request body.</p>
+
+<p>The request returns the updated environment or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-update-environment-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-update-environment-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-update-environment-example-curl">
+                                <pre><code class="hljs curl">curl -X PATCH -H "Authorization: {{auth}}" -d '{
+    "old_name": "main_env",
+    "new_name": "main_environment",
+    "description": "the main environment"
+}' "http://localhost:3000/environments/{{user_id}}/{{env_name}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-update-environment-example-http">
+                                <pre><code class="hljs http">PATCH /environments/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}
+
+{
+    "old_name": "main_env",
+    "new_name": "main_environment",
+    "description": "the main environment"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-update-environment-responses-92140d44-1b8d-4e2b-b4f4-a9a50f1eff86" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-update-environment-responses-92140d44-1b8d-4e2b-b4f4-a9a50f1eff86">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "owner_id": 741,
+    "name": "example_env_new_name",
+    "description": "an example API for the documentation",
+    "tables": [
+        "_741_example_env_example_table",
+        "_741_example_env_example_table1"
+    ]
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-delete-environment">
+                        Delete Environment
+                        <a href="#request-delete-environment"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Delete the environment with the given <code>env_name</code> for the user with the given <code>user_id</code>.</p>
+
+<p>The request returns a confirmation message or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-delete-environment-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-delete-environment-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-delete-environment-example-curl">
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-delete-environment-example-http">
+                                <pre><code class="hljs http">DELETE /environments/%7B%7Benv_name%7D%7D/?user_id={{user_id}} HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-delete-environment-responses-15ce7fa7-4429-428f-a085-f8434bdadcf4" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-delete-environment-responses-15ce7fa7-4429-428f-a085-f8434bdadcf4">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>{
+    "message": "Environment with name 'example_env' has been successfully deleted"
+}</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-environment-description">
+                        Get Environment Description
+                        <a href="#request-get-environment-description"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>description</code> of the environment with the given <code>env_name</code> for the user with the given <code>user_id</code>.</p>
+
+<p>The request returns the description of the environment or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-environment-description-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-environment-description-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-environment-description-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/description/?user_id={{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-environment-description-example-http">
+                                <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/description/?user_id={{user_id}} HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-environment-description-responses-ce66d209-bd96-4be5-bcf0-48003e8dea0a" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-environment-description-responses-ce66d209-bd96-4be5-bcf0-48003e8dea0a">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+                
+                <div class="request">
+
+                    <h3 id="request-get-environment-tables">
+                        Get Environment Tables
+                        <a href="#request-get-environment-tables"><i class="glyphicon glyphicon-link"></i></a>
+                    </h3>
+
+                    <div><p>Get the <code>table_ids</code> under an environment with the given <code>env_name</code> for the user with the given <code>user_id</code>.</p>
+
+<p>The request returns an array of <code>table_ids</code> or an error message.</p>
+</div>
+
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#request-get-environment-tables-example-curl" data-toggle="tab">Curl</a></li>
+                            <li role="presentation"><a href="#request-get-environment-tables-example-http" data-toggle="tab">HTTP</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="request-get-environment-tables-example-curl">
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/tables?user_id={{user_id}}"</code></pre>
+                            </div>
+                            <div class="tab-pane" id="request-get-environment-tables-example-http">
+                                <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/tables?user_id={{user_id}} HTTP/1.1
+Host: localhost:3000
+Authorization: {{auth}}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div>
+                        <ul class="nav nav-tabs" role="tablist">
+                            
+                            <li role="presentation" class="active">
+                                <a href="#request-get-environment-tables-responses-4b4ab8aa-78ca-49c7-9c04-3cd1b4c3ba1e" data-toggle="tab">
+                                    
+                                    Response
+                                    
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        <div class="tab-content">
+                            
+                            <div class="tab-pane active" id="request-get-environment-tables-responses-4b4ab8aa-78ca-49c7-9c04-3cd1b4c3ba1e">
+                                <table class="table table-bordered">
+                                    <tr><th style="width: 20%;">Status</th><td>200 OK</td></tr>
+                                    
+                                    <tr><th style="width: 20%;">Content-Type</th><td>application/json</td></tr>
+                                    
+                                    
+                                    
+                                    <tr><td class="response-text-sample" colspan="2">
+                                        <pre><code>[
+    "_741_example_env_example_table",
+    "_741_example_env_example_table1"
+]</code></pre>
+                                    </td></tr>
+                                    
+                                    
+                                </table>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+
+                    <hr>
+                </div>
+                
+
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("table:not(.table)").addClass('table table-bordered');
+    });
+</script>
+</body>
+</html>
