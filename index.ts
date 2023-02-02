@@ -1566,5 +1566,5 @@ app.delete('/api/:user_id/:env_name/:table_name/:id/:field_name', async (req: an
 
 
 app.listen(port, () => {
-  console.log(`MDB is online @ http://localhost:${port}`);
+  console.log(`MDB is online @ https://mdb.mzecheru.com`);
 });
