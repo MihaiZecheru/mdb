@@ -348,11 +348,11 @@ pre code {
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-all-entries-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/all"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/all"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-all-entries-example-http">
                                 <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/all HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -408,11 +408,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-entry-by-id-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-entry-by-id-example-http">
                                 <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -477,11 +477,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-an-entry-s-field-by-id-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-an-entry-s-field-by-id-example-http">
                                 <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -542,11 +542,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-entry-filter-queries-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{filter_queries}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{filter_queries}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-entry-filter-queries-example-http">
                                 <pre><code class="hljs http">GET /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bfilter_queries%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -652,11 +652,11 @@ Authorization: {{auth}}</code></pre>
                             <div class="tab-pane active" id="request-update-entry-example-curl">
                                 <pre><code class="hljs curl">curl -X PUT -H "Authorization: {{auth}}" -d '{
     "username": "johnsmith"
-}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+}' "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-update-entry-example-http">
                                 <pre><code class="hljs http">PUT /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -727,11 +727,11 @@ Authorization: {{auth}}
                             <div class="tab-pane active" id="request-update-an-entry-s-field-example-curl">
                                 <pre><code class="hljs curl">curl -X PUT -H "Authorization: {{auth}}" -d '{
     "value": 5
-}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+}' "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-update-an-entry-s-field-example-http">
                                 <pre><code class="hljs http">PUT /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -796,11 +796,11 @@ Authorization: {{auth}}
                                 <pre><code class="hljs curl">curl -X POST -H "Authorization: {{auth}}" -d '{
     "entry_fields": "are specific to each table / custom API",
     "but_follow": "this format of key-value pairs"
-}' "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+}' "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-create-new-entry-example-http">
                                 <pre><code class="hljs http">POST /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -877,11 +877,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-delete-entry-example-curl">
-                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-delete-entry-example-http">
                                 <pre><code class="hljs http">DELETE /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -944,11 +944,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-delete-an-entry-s-field-example-curl">
-                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/api/{{user_id}}/{{env_name}}/{{table_name}}/{{entry_id}}/{{field_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-delete-an-entry-s-field-example-http">
                                 <pre><code class="hljs http">DELETE /api/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/%7B%7Bentry_id%7D%7D/%7B%7Bfield_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>

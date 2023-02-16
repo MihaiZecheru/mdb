@@ -304,11 +304,11 @@ pre code {
     "username": "chrissy",
     "password": "mihai28!",
     "email": "chrissy@gmail.com"
-}' "http://localhost:3000/users/"</code></pre>
+}' "https://mdb.mzecheru.com/users/"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-create-new-user-example-http">
                                 <pre><code class="hljs http">POST /users/ HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{admin_auth}}
 
 {
@@ -384,11 +384,11 @@ Authorization: {{admin_auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-by-id-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-by-id-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -464,11 +464,11 @@ Authorization: {{auth}}</code></pre>
     "username": "chrissy",
     "password": "mihai28!",
     "email": "chrissy@hotmail.com"
-}' "http://localhost:3000/users/{{user_id}}"</code></pre>
+}' "https://mdb.mzecheru.com/users/{{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-update-user-fields-example-http">
                                 <pre><code class="hljs http">PATCH /users/%7B%7Buser_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -544,11 +544,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-delete-user-by-id-example-curl">
-                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-delete-user-by-id-example-http">
                                 <pre><code class="hljs http">DELETE /users/%7B%7Buser_id%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -614,11 +614,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-username-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/username"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/username"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-username-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/username HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -678,11 +678,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-password-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/password"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/password"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-password-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/password HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -740,11 +740,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-email-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/email"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/email"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-email-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/email HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -804,11 +804,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-linked-tables-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/tables"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/tables"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-linked-tables-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/tables HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -877,11 +877,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-linked-tables-count-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/tables/count"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/tables/count"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-linked-tables-count-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/tables/count HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -945,11 +945,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-linked-environments-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/environments/?return=not_required"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/environments/?return=not_required"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-linked-environments-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/environments/?return=not_required HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -1015,11 +1015,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-user-linked-environment-count-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/users/{{user_id}}/environments/count/"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/users/{{user_id}}/environments/count/"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-user-linked-environment-count-example-http">
                                 <pre><code class="hljs http">GET /users/%7B%7Buser_id%7D%7D/environments/count/ HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>

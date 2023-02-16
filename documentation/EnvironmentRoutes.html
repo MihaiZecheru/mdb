@@ -279,11 +279,11 @@ pre code {
                                 <pre><code class="hljs curl">curl -X POST -H "Authorization: {{auth}}" -d '{
     "name": "main_env",
     "description": "the main environment"
-}' "http://localhost:3000/environments/?user_id={{user_id}}"</code></pre>
+}' "https://mdb.mzecheru.com/environments/?user_id={{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-create-new-environment-example-http">
                                 <pre><code class="hljs http">POST /environments/?user_id={{user_id}} HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -360,11 +360,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-environment-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-environment-example-http">
                                 <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/?user_id={{user_id}} HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -442,11 +442,11 @@ Authorization: {{auth}}</code></pre>
     "old_name": "main_env",
     "new_name": "main_environment",
     "description": "the main environment"
-}' "http://localhost:3000/environments/{{user_id}}/{{env_name}}"</code></pre>
+}' "https://mdb.mzecheru.com/environments/{{user_id}}/{{env_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-update-environment-example-http">
                                 <pre><code class="hljs http">PATCH /environments/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -524,11 +524,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-delete-environment-example-curl">
-                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/environments/{{env_name}}/?user_id={{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-delete-environment-example-http">
                                 <pre><code class="hljs http">DELETE /environments/%7B%7Benv_name%7D%7D/?user_id={{user_id}} HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -594,11 +594,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-environment-description-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/description/?user_id={{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/environments/{{env_name}}/description/?user_id={{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-environment-description-example-http">
                                 <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/description/?user_id={{user_id}} HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -656,11 +656,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-environment-tables-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/environments/{{env_name}}/tables?user_id={{user_id}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/environments/{{env_name}}/tables?user_id={{user_id}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-environment-tables-example-http">
                                 <pre><code class="hljs http">GET /environments/%7B%7Benv_name%7D%7D/tables?user_id={{user_id}} HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>

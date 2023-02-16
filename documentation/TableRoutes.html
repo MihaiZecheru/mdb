@@ -316,11 +316,11 @@ pre code {
             "auto_date": true
         }
     }
-}' "http://localhost:3000/tables/{{user_id}}/{{env_name}}"</code></pre>
+}' "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-create-new-table-example-http">
                                 <pre><code class="hljs http">POST /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -423,11 +423,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -525,11 +525,11 @@ Authorization: {{auth}}</code></pre>
     "rename_fields": {
         "password": "open_sesame!"
     }
-}' "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+}' "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-update-table-example-http">
                                 <pre><code class="hljs http">PATCH /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}
 
 {
@@ -624,11 +624,11 @@ Authorization: {{auth}}
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-delete-table-example-curl">
-                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
+                                <pre><code class="hljs curl">curl -X DELETE -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-delete-table-example-http">
                                 <pre><code class="hljs http">DELETE /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -694,11 +694,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-id-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/id"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}/id"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-id-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/id HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -758,11 +758,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-name-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/name"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}/name"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-name-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/name HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -822,11 +822,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-environment-name-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/env_name"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}/env_name"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-environment-name-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/env_name HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -886,11 +886,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-description-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/description"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}/description"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-description-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/description HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
@@ -950,11 +950,11 @@ Authorization: {{auth}}</code></pre>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="request-get-table-fields-example-curl">
-                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "http://localhost:3000/tables/{{user_id}}/{{env_name}}/{{table_name}}/fields"</code></pre>
+                                <pre><code class="hljs curl">curl -X GET -H "Authorization: {{auth}}" "https://mdb.mzecheru.com/tables/{{user_id}}/{{env_name}}/{{table_name}}/fields"</code></pre>
                             </div>
                             <div class="tab-pane" id="request-get-table-fields-example-http">
                                 <pre><code class="hljs http">GET /tables/%7B%7Buser_id%7D%7D/%7B%7Benv_name%7D%7D/%7B%7Btable_name%7D%7D/fields HTTP/1.1
-Host: localhost:3000
+Host: mdb.mzecheru.com
 Authorization: {{auth}}</code></pre>
                             </div>
                         </div>
