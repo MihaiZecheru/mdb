@@ -31,7 +31,7 @@ app.get('/', async (req: any, res: any) => {
  * Sends: the documentation as an HTML page
  */
 app.get('/docs', async (req: any, res: any) => {
-  res.sendFile('documentation/all.html', { root: __dirname }); // TODO: allow user to go to any of the doc pages from this one page. also include the 'postman' overall/general/intro documentation here.
+  res.sendFile('documentation/all.html', { root: __dirname });
 });
 
 app.get('/docs/customAPI_routes', async (req: any, res: any) => {
@@ -43,7 +43,7 @@ app.get('/docs/user_routes', async (req: any, res: any) => {
 });
 
 app.get('/docs/table_routes', async (req: any, res: any) => {
-  res.sendFile('documentation/TableRoutes.html'), { root: __dirname };
+  res.sendFile('documentation/TableRoutes.html', { root: __dirname });
 });
 
 app.get('/docs/environment_routes', async (req: any, res: any) => {
